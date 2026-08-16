@@ -1,0 +1,385 @@
+.id-card-view-container {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  min-height: calc(100vh - 120px);
+}
+
+.id-card-header h1 {
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  text-shadow: var(--text-glow-cyan);
+}
+
+.id-card-header p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.id-act-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.status-banner {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.status-banner.success {
+  background: rgba(0, 255, 102, 0.05);
+  border: 1px solid var(--color-green);
+  color: var(--color-green);
+}
+
+.status-banner.error {
+  background: rgba(255, 51, 51, 0.05);
+  border: 1px solid var(--color-red);
+  color: var(--color-red);
+}
+
+.id-card-center-stage {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Holographic Interactive ID Card Styling */
+.officer-id-badge-card {
+  width: 500px;
+  padding: 30px;
+  background: linear-gradient(135deg, rgba(8, 20, 38, 0.95) 0%, rgba(12, 28, 54, 0.95) 100%) !important;
+  border: 2px solid rgba(0, 240, 255, 0.3) !important;
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: all 0.5s ease;
+}
+
+.officer-id-badge-card:hover {
+  border-color: rgba(0, 240, 255, 0.6) !important;
+  box-shadow: 0 0 45px rgba(0, 240, 255, 0.25);
+  transform: translateY(-5px);
+}
+
+/* Animated Shimmer Overlay */
+.badge-card-shimmer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(0,240,255,0.05) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg) translateX(250px);
+  animation: shimmerAnim 4s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes shimmerAnim {
+  0% { transform: skewX(-25deg) translateX(-350px); }
+  100% { transform: skewX(-25deg) translateX(350px); }
+}
+
+.badge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid rgba(0, 240, 255, 0.2);
+  padding-bottom: 12px;
+}
+
+.dept-title {
+  font-size: 0.65rem;
+  color: var(--color-cyan);
+  font-weight: 900;
+  letter-spacing: 2px;
+  display: block;
+}
+
+.badge-type {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+}
+
+.badge-header-shield {
+  color: var(--color-cyan);
+  filter: drop-shadow(0 0 6px var(--color-cyan));
+}
+
+.badge-body {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+/* Photo and Upload controls */
+.avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-preview-box {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  border: 2px solid var(--color-cyan);
+  background: rgba(0, 240, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  opacity: 0.7;
+}
+
+.avatar-uploading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-cyan);
+}
+
+.avatar-upload-trigger {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--color-cyan);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.avatar-upload-trigger:hover {
+  background: var(--color-cyan);
+  color: #05050f;
+}
+
+/* Metadata fields styling */
+.metadata-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.meta-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+.meta-value {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.name-highlight {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fff !important;
+  text-transform: uppercase;
+}
+
+.rank-highlight {
+  color: var(--color-yellow) !important;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.id-val {
+  color: #fff;
+  font-weight: bold;
+}
+
+.zone-highlight {
+  color: var(--color-cyan) !important;
+  font-weight: bold;
+}
+
+.badge-footer {
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+  font-size: 0.7rem;
+}
+
+/* Holographic Barcode Design */
+.holographic-barcode {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.03);
+  position: relative;
+}
+
+.barcode-line {
+  height: 2px;
+  background: rgba(0, 240, 255, 0.3);
+  width: 100%;
+}
+
+.barcode-line:nth-child(even) {
+  width: 75%;
+}
+
+.barcode-line:nth-child(3n) {
+  width: 90%;
+}
+
+.holographic-barcode .text-val {
+  font-size: 0.55rem;
+  color: var(--color-cyan);
+  text-align: center;
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+
+.badge-security-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-weight: bold;
+}
+
+.status-dot-green {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00ff66;
+  box-shadow: 0 0 6px #00ff66;
+}
+
+.status-txt {
+  color: var(--color-green);
+  letter-spacing: 0.5px;
+}
+
+/* CSS Print overrides */
+@media print {
+  /* Hide all peripheral dashboard elements and containers */
+  body > :not(.id-card-view-container),
+  .id-card-view-container > :not(.id-card-center-stage),
+  .id-card-center-stage > :not(.officer-id-badge-card),
+  .sidebar,
+  .topbar,
+  .id-card-header,
+  .status-banner {
+    display: none !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 0 !important;
+  }
+
+  body, html {
+    background: #fff !important;
+    color: #000 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .id-card-view-container,
+  .id-card-center-stage {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #fff !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  .officer-id-badge-card {
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    transform: scale(0.95) !important; /* Scale slightly down to guarantee zero overflow */
+    margin: 0 auto !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .officer-id-badge-card * {
+    color: #000 !important;
+  }
+
+  .dept-title {
+    color: #000 !important;
+  }
+
+  .avatar-upload-trigger {
+    display: none !important;
+  }
+}

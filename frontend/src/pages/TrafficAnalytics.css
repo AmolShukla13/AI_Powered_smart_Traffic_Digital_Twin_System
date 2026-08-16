@@ -1,0 +1,67 @@
+.analytics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+.analytics-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.analytics-header-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-cyan);
+}
+
+.analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.stat-icon {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+/* Scrollbar styling for recommendations container */
+.glass-panel div::-webkit-scrollbar {
+  width: 4px;
+}
+
+.glass-panel div::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.glass-panel div::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+.glass-panel div::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

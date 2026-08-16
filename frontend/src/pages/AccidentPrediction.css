@@ -1,0 +1,328 @@
+.risk-analytics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 15px 15px 15px;
+}
+
+.risk-header {
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.risk-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.risk-header-icon {
+  width: 36px;
+  height: 36px;
+  color: var(--color-red);
+}
+
+.risk-header-meta h1 {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+}
+
+.risk-header-meta p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Grid layout */
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.section-title {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 10px;
+}
+
+.section-title h3 {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+/* Custom Chart styling */
+.chart-wrapper {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.custom-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chart-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.bar-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  width: 120px;
+}
+
+.bar-track {
+  flex-grow: 1;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease-out;
+}
+
+.bar-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  width: 40px;
+  text-align: right;
+}
+
+.no-data {
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Protocol Grid */
+.safety-tips-card h4 {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+
+.prot-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prot-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.prot-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.prot-icon.green { color: var(--color-green); }
+.prot-icon.yellow { color: var(--color-yellow); }
+.prot-icon.red { color: var(--color-red); }
+.prot-icon.purple { color: var(--color-purple); }
+
+.prot-desc {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.prot-desc strong {
+  color: var(--text-secondary);
+}
+
+/* Simulator right panel */
+.sub-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.sim-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.sim-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sim-input-row label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.sim-submit-btn {
+  width: 100%;
+  padding: 12px !important;
+  font-size: 0.90rem !important;
+  margin-top: 10px;
+}
+
+/* Simulated results output styling */
+.sim-output-box {
+  padding: 20px;
+}
+
+.sim-output-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.sim-risk-icon.low { color: var(--color-green); }
+.sim-risk-icon.medium { color: var(--color-yellow); }
+.sim-risk-icon.high { color: var(--color-red); }
+.sim-risk-icon.critical { color: var(--color-purple); }
+
+.sim-lbl {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.sim-risk-val {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.sim-risk-val.low { color: var(--color-green); text-shadow: 0 0 10px rgba(0,255,102,0.2); }
+.sim-risk-val.medium { color: var(--color-yellow); text-shadow: 0 0 10px rgba(255,183,0,0.2); }
+.sim-risk-val.high { color: var(--color-red); text-shadow: 0 0 10px rgba(255,51,51,0.2); }
+.sim-risk-val.critical { color: var(--color-purple); text-shadow: 0 0 10px rgba(189,0,255,0.2); }
+
+.sim-lists {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.sim-list-col h5 {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.sim-ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sim-li {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.no-sim-output {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.shield-icon {
+  margin-bottom: 15px;
+  color: var(--text-muted);
+}
+
+.no-sim-output p {
+  font-size: 0.85rem;
+  max-width: 250px;
+  line-height: 1.5;
+}
+
+/* Full-width Simulation Output Styling */
+.sim-output-box-full {
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  transition: all 0.4s ease;
+  width: 100%;
+}
+
+.sim-output-box-full.low {
+  border-color: rgba(0, 255, 102, 0.25);
+  background: linear-gradient(135deg, rgba(0, 255, 102, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
+  box-shadow: 0 8px 32px 0 rgba(0, 255, 102, 0.04);
+}
+
+.sim-output-box-full.medium {
+  border-color: rgba(255, 183, 0, 0.25);
+  background: linear-gradient(135deg, rgba(255, 183, 0, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
+  box-shadow: 0 8px 32px 0 rgba(255, 183, 0, 0.04);
+}
+
+.sim-output-box-full.high {
+  border-color: rgba(255, 51, 51, 0.35);
+  background: linear-gradient(135deg, rgba(255, 51, 51, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  box-shadow: 0 8px 32px 0 rgba(255, 51, 51, 0.06);
+}
+
+.sim-output-box-full.critical {
+  border-color: rgba(189, 0, 255, 0.45);
+  background: linear-gradient(135deg, rgba(189, 0, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  box-shadow: 0 8px 32px 0 rgba(189, 0, 255, 0.08);
+  animation: criticalBorderPulse 2s infinite alternate;
+}
+
+@keyframes criticalBorderPulse {
+  0% { border-color: rgba(189, 0, 255, 0.25); box-shadow: 0 8px 32px 0 rgba(189, 0, 255, 0.03); }
+  100% { border-color: rgba(189, 0, 255, 0.55); box-shadow: 0 8px 32px 0 rgba(189, 0, 255, 0.12); }
+}
+
+.no-sim-output-full {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  border-radius: 12px;
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+  .sim-lists {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,183 @@
+.logs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+}
+
+.logs-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logs-header-icon {
+  width: 36px;
+  height: 36px;
+  color: var(--color-cyan);
+}
+
+.logs-header-meta h1 {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+}
+
+.logs-header-meta p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.filter-icon {
+  color: var(--text-secondary);
+}
+
+.filter-select {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.filter-select option {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.logs-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.logs-table th {
+  background: rgba(18, 26, 43, 0.4);
+  padding: 18px 24px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.logs-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.logs-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.vehicle-badge {
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.vehicle-badge.ambulance {
+  background: rgba(255, 0, 85, 0.1);
+  color: #ff0055;
+  border: 1px solid rgba(255, 0, 85, 0.2);
+}
+
+.vehicle-badge.fire {
+  background: rgba(255, 85, 0, 0.1);
+  color: #ff5500;
+  border: 1px solid rgba(255, 85, 0, 0.2);
+}
+
+.vehicle-badge.police {
+  background: rgba(0, 85, 255, 0.1);
+  color: #0055ff;
+  border: 1px solid rgba(0, 85, 255, 0.2);
+}
+
+.route-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.route-node-tag {
+  font-size: 0.75rem;
+  color: var(--color-cyan);
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.route-node-tag .arrow {
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.status-pill {
+  font-weight: 800;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.status-pill.pending {
+  background: rgba(255, 183, 0, 0.1);
+  color: var(--color-yellow);
+  border: 1px solid rgba(255, 183, 0, 0.3);
+}
+
+.status-pill.routed {
+  background: rgba(0, 255, 102, 0.1);
+  color: var(--color-green);
+  border: 1px solid rgba(0, 255, 102, 0.3);
+}
+
+.status-pill.cleared {
+  background: rgba(107, 114, 128, 0.15);
+  color: var(--text-secondary);
+  border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.no-logs {
+  text-align: center;
+  padding: 40px !important;
+  color: var(--text-secondary);
+}
+
+.shield-ok {
+  color: var(--color-green);
+  margin-bottom: 12px;
+}
