@@ -8,19 +8,29 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for React frontend (default port is 5173)
+# Enable CORS for specific React frontend origins
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://smart-traffic-frontend-9ukb.onrender.com"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In development, allow all origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include Routers
+# Include Routers (dual-mount for legacy fetch calls and centralized /api client support)
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(traffic.router)
+
+app.include_router(auth.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
+app.include_router(traffic.router, prefix="/api")
 
 @app.on_event("startup")
 def startup_event():

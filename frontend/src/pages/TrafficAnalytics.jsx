@@ -27,7 +27,7 @@ export default function TrafficAnalytics({ videoResults, activeFrameStats, selec
 
   const fetchLocations = async () => {
     try {
-      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
       if (res.ok) {
         const data = await res.json();
         

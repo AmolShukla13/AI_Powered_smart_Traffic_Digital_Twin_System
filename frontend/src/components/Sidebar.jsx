@@ -19,6 +19,10 @@ export default function Sidebar() {
     sessionStorage.removeItem("role");
     sessionStorage.removeItem("username");
     sessionStorage.removeItem("assigned_location");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
+    localStorage.removeItem("assigned_location");
     navigate("/login");
   };
 

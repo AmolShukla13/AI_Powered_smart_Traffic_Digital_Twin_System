@@ -43,7 +43,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
     // Simulate real-time API ping
     const pInterval = setInterval(() => {
       const start = Date.now();
-      fetch("https://smart-traffic-backend-q3q9.onrender.com/")
+      fetch(`${import.meta.env.VITE_API_URL}/`)
         .then(() => setPing(Date.now() - start))
         .catch(() => setPing(-1));
     }, 3000);
@@ -64,7 +64,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
   const fetchData = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const locRes = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
+      const locRes = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
       const locData = await locRes.json();
       
       const assigned = sessionStorage.getItem("assigned_location");
@@ -73,7 +73,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
         : locData;
       setLocations(filteredLocData);
 
-      const emRes = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/emergencies");
+      const emRes = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
       const emData = await emRes.json();
       const filteredEmData = assigned
         ? emData.filter(e => matchLocationNames(e.start_location, assigned) || matchLocationNames(e.destination_location, assigned) || (e.route && e.route.some(r => matchLocationNames(r, assigned))))

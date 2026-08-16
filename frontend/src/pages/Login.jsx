@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShieldAlert, Mail, Lock, User, MapPin, KeyRound, ArrowRight, Phone } from "lucide-react";
+import API from "../services/api";
 import "./Login.css";
 
 export default function Login() {
@@ -30,16 +31,14 @@ export default function Login() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableLocations(data);
-          if (data.length > 0) {
-            setSelectedLocationOption(data[0].name);
-            setAssignedLocation(data[0].name);
-          } else {
-            setIsCustomLocation(true);
-          }
+        const res = await API.get("/traffic/locations");
+        const data = res.data;
+        setAvailableLocations(data);
+        if (data.length > 0) {
+          setSelectedLocationOption(data[0].name);
+          setAssignedLocation(data[0].name);
+        } else {
+          setIsCustomLocation(true);
         }
       } catch (err) {
         console.error("Error loading locations:", err);
@@ -66,47 +65,31 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const url = isLogin 
-      ? "https://smart-traffic-backend-q3q9.onrender.com/auth/login" 
-      : "https://smart-traffic-backend-q3q9.onrender.com/auth/signup";
+    const path = isLogin ? "/auth/login" : "/auth/signup";
 
     const body = isLogin 
       ? { username, password } 
       : { username, password, email, phone, role, assigned_location: role === "admin" ? assignedLocation : null };
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await API.post(path, body);
+      const data = response.data;
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        if (data.detail) {
-          if (Array.isArray(data.detail)) {
-            // Parse FastAPI validation error arrays
-            const msgs = data.detail.map(err => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(", ");
-            throw new Error(msgs);
-          } else if (typeof data.detail === "object") {
-            throw new Error(data.detail.message || JSON.stringify(data.detail));
-          } else {
-            throw new Error(data.detail);
-          }
-        }
-        throw new Error("Authentication failed. Try again.");
-      }
-
-      // Store in sessionStorage
+      // Store in sessionStorage and localStorage
       sessionStorage.setItem("token", data.access_token);
       sessionStorage.setItem("role", data.role);
       sessionStorage.setItem("username", data.username);
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("username", data.username);
+      
       if (data.assigned_location) {
         const mappedLoc = data.assigned_location === "Sitapur" ? "Sitapur Junction" : data.assigned_location;
         sessionStorage.setItem("assigned_location", mappedLoc);
+        localStorage.setItem("assigned_location", mappedLoc);
       } else {
         sessionStorage.removeItem("assigned_location");
+        localStorage.removeItem("assigned_location");
       }
 
       // Redirect
@@ -116,7 +99,20 @@ export default function Login() {
         navigate("/");
       }
     } catch (err) {
-      setError(err.message);
+      let errorMsg = "Authentication failed. Try again.";
+      if (err.response && err.response.data && err.response.data.detail) {
+        const detail = err.response.data.detail;
+        if (Array.isArray(detail)) {
+          errorMsg = detail.map(e => `${e.loc[e.loc.length - 1]}: ${e.msg}`).join(", ");
+        } else if (typeof detail === "object") {
+          errorMsg = detail.message || JSON.stringify(detail);
+        } else {
+          errorMsg = detail;
+        }
+      } else {
+        errorMsg = err.message || errorMsg;
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -129,21 +125,12 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("https://smart-traffic-backend-q3q9.onrender.com/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: forgotUsername,
-          email: forgotEmail,
-          badge_number: forgotBadgeNumber,
-          new_password: forgotNewPassword
-        })
+      await API.post("/auth/forgot-password", {
+        username: forgotUsername,
+        email: forgotEmail,
+        badge_number: forgotBadgeNumber,
+        new_password: forgotNewPassword
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || "Verification failed. Please double check credentials.");
-      }
 
       setSuccessMsg("✨ PASSCODE RESET SUCCESSFUL: Please sign in with your new passcode.");
       setForgotUsername("");
@@ -153,9 +140,15 @@ export default function Login() {
       setTimeout(() => {
         setIsForgot(false);
         setSuccessMsg("");
-      }, 3500);
+      }, 5000);
     } catch (err) {
-      setError(err.message);
+      let errorMsg = "Verification failed. Please double check credentials.";
+      if (err.response && err.response.data && err.response.data.detail) {
+        errorMsg = err.response.data.detail;
+      } else {
+        errorMsg = err.message || errorMsg;
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

@@ -123,7 +123,7 @@ def get_admin_status(current_user = Depends(check_admin_role)):
     """
     locations_count = db["locations"].count_documents({})
     users_count = db["users"].count_documents({})
-    admins_count = db["users"].count_documents({"role": "admin"})
+    admins_count = db["users"].count_documents({"role": {"$regex": "^admin$", "$options": "i"}})
     
     return {
         "admin_username": current_user["username"],
@@ -186,7 +186,7 @@ def get_officer_directory():
     """
     Get a list of all registered administrative police officers.
     """
-    users = db["users"].find({"role": "admin"})
+    users = db["users"].find({"role": {"$regex": "^admin$", "$options": "i"}})
     directory = []
     for u in users:
         directory.append({

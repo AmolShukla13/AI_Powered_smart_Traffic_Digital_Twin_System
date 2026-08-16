@@ -12,7 +12,7 @@ export default function OfficerVerify() {
   useEffect(() => {
     const verifyBadge = async () => {
       try {
-        const res = await fetch(`https://smart-traffic-backend-q3q9.onrender.com/auth/verify-badge/${username}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-badge/${username}`);
         if (res.ok) {
           const data = await res.json();
           setOfficer(data);
