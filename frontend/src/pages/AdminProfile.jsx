@@ -65,7 +65,7 @@ export default function AdminProfile() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8000/auth/profile", {
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/auth/profile", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -128,7 +128,7 @@ export default function AdminProfile() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8000/auth/update-profile", {
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/auth/update-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

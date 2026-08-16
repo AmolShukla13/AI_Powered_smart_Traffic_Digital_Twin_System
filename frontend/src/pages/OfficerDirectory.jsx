@@ -13,7 +13,7 @@ export default function OfficerDirectory() {
   const fetchOfficers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/admin/directory");
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/admin/directory");
       if (res.ok) {
         const data = await res.json();
         setOfficers(data);

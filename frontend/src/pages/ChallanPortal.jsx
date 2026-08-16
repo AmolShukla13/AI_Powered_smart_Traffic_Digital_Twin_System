@@ -16,12 +16,12 @@ export default function ChallanPortal() {
 
   // Load locations and config on mount
   useEffect(() => {
-    fetch("http://localhost:8000/traffic/locations")
+    fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations")
       .then((res) => res.json())
       .then((data) => setLocations(data))
       .catch((err) => console.error("Error fetching locations for speed guide:", err));
 
-    fetch("http://localhost:8000/traffic/challans-config")
+    fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/challans-config")
       .then((res) => res.json())
       .then((data) => setRtoApiActive(data.rto_api_active))
       .catch((err) => console.error("Error fetching challan api config:", err));
@@ -35,7 +35,7 @@ export default function ChallanPortal() {
     setLoading(true);
     setMessage("");
     try {
-      const res = await fetch(`http://localhost:8000/traffic/challans/${encodeURIComponent(vehicleNumber)}`);
+      const res = await fetch(`https://smart-traffic-backend-q3q9.onrender.com/traffic/challans/${encodeURIComponent(vehicleNumber)}`);
       if (res.ok) {
         const data = await res.json();
         setChallans(data);
@@ -112,7 +112,7 @@ export default function ChallanPortal() {
 
     // 2. Production Integration for Real Government / RTO records
     try {
-      const orderRes = await fetch(`http://localhost:8000/traffic/challans/${challan.challan_id}/create-order`, {
+      const orderRes = await fetch(`https://smart-traffic-backend-q3q9.onrender.com/traffic/challans/${challan.challan_id}/create-order`, {
         method: "POST"
       });
       if (!orderRes.ok) {
@@ -137,7 +137,7 @@ export default function ChallanPortal() {
         description: `Challan Settle: ${challan.violation_type}`,
         order_id: orderData.id,
         handler: async function (response) {
-          const verifyRes = await fetch("http://localhost:8000/traffic/challans/verify-payment", {
+          const verifyRes = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/challans/verify-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -153,7 +153,7 @@ export default function ChallanPortal() {
               setChallans([{ ...challan, status: "Paid" }]);
               return;
             }
-            const searchRes = await fetch(`http://localhost:8000/traffic/challans/${encodeURIComponent(queriedPlate)}`);
+            const searchRes = await fetch(`https://smart-traffic-backend-q3q9.onrender.com/traffic/challans/${encodeURIComponent(queriedPlate)}`);
             if (searchRes.ok) {
               const data = await searchRes.json();
               setChallans(data);

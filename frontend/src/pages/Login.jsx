@@ -30,7 +30,7 @@ export default function Login() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await fetch("http://localhost:8000/traffic/locations");
+        const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
         if (res.ok) {
           const data = await res.json();
           setAvailableLocations(data);
@@ -67,8 +67,8 @@ export default function Login() {
     setLoading(true);
 
     const url = isLogin 
-      ? "http://localhost:8000/auth/login" 
-      : "http://localhost:8000/auth/signup";
+      ? "https://smart-traffic-backend-q3q9.onrender.com/auth/login" 
+      : "https://smart-traffic-backend-q3q9.onrender.com/auth/signup";
 
     const body = isLogin 
       ? { username, password } 
@@ -129,7 +129,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/auth/forgot-password", {
+      const response = await fetch("https://smart-traffic-backend-q3q9.onrender.com/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

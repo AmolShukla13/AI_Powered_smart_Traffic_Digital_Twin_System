@@ -109,7 +109,7 @@ function AppContent() {
 
       const syncDB = async () => {
         try {
-          await fetch(`http://localhost:8000/admin/locations/${selectedLocation}/override`, {
+          await fetch(`https://smart-traffic-backend-q3q9.onrender.com/admin/locations/${selectedLocation}/override`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",

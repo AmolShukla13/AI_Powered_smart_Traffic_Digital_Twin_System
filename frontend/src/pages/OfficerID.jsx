@@ -38,7 +38,7 @@ export default function OfficerID() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8000/auth/profile", {
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/auth/profile", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -75,7 +75,7 @@ export default function OfficerID() {
 
       // Save image URL to MongoDB via backend profile update endpoint
       const token = sessionStorage.getItem("token");
-      const updateRes = await fetch("http://localhost:8000/auth/update-profile", {
+      const updateRes = await fetch("https://smart-traffic-backend-q3q9.onrender.com/auth/update-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

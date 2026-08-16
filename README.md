@@ -102,7 +102,7 @@ AI-powered smart trafficdigital twin/
    ```bash
    python run.py
    ```
-   *The backend will be available at: **`http://localhost:8000`***
+   *The backend will be available at: **`https://smart-traffic-backend-q3q9.onrender.com`***
 
 ---
 

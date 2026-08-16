@@ -25,8 +25,8 @@ export default function SignalAdvisory() {
   const fetchAdvisoryData = async (isBackground = true) => {
     if (!isBackground) setLoading(true);
     try {
-      const locRes = await fetch("http://localhost:8000/traffic/locations");
-      const emRes = await fetch("http://localhost:8000/traffic/emergencies");
+      const locRes = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
+      const emRes = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/emergencies");
 
       if (locRes.ok && emRes.ok) {
         const locData = await locRes.json();

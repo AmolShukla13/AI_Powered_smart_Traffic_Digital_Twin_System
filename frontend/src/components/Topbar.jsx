@@ -37,7 +37,7 @@ export default function Topbar() {
   // Fetch emergencies to check pending alerts
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch("http://localhost:8000/traffic/emergencies");
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/emergencies");
       if (res.ok) {
         const data = await res.json();
         setEmergencies(data);

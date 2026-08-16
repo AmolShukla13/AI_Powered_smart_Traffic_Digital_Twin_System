@@ -61,7 +61,7 @@ export default function UserView() {
   // Fetch emergency requests periodically
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch("http://localhost:8000/traffic/emergencies");
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/emergencies");
       if (res.ok) {
         const data = await res.json();
         setEmergencies(data);
@@ -113,7 +113,7 @@ export default function UserView() {
           console.error("Reverse geocoding error:", err);
         }
 
-        const res = await fetch("http://localhost:8000/traffic/locations");
+        const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
         if (res.ok) {
           const dbData = await res.json();
           
@@ -233,8 +233,8 @@ export default function UserView() {
     if (!isBackground) setLoading(true);
     try {
       const url = search 
-        ? `http://localhost:8000/traffic/locations?search=${encodeURIComponent(search)}`
-        : "http://localhost:8000/traffic/locations";
+        ? `https://smart-traffic-backend-q3q9.onrender.com/traffic/locations?search=${encodeURIComponent(search)}`
+        : "https://smart-traffic-backend-q3q9.onrender.com/traffic/locations";
       const res = await fetch(url);
       const data = await res.json();
       
@@ -283,7 +283,7 @@ export default function UserView() {
     setLoading(true);
     try {
       // 1. Search in local database
-      const url = `http://localhost:8000/traffic/locations?search=${encodeURIComponent(searchQuery)}`;
+      const url = `https://smart-traffic-backend-q3q9.onrender.com/traffic/locations?search=${encodeURIComponent(searchQuery)}`;
       const res = await fetch(url);
       const data = await res.json();
       
@@ -360,7 +360,7 @@ export default function UserView() {
           try {
             const weatherToUse = selectedLoc.predicted_weather || "Clear";
             const res = await fetch(
-              `http://localhost:8000/traffic/predict-accident/${encodeURIComponent(selectedLoc.name)}?weather=${weatherToUse}`
+              `https://smart-traffic-backend-q3q9.onrender.com/traffic/predict-accident/${encodeURIComponent(selectedLoc.name)}?weather=${weatherToUse}`
             );
             if (res.ok) {
               const data = await res.json();
@@ -733,7 +733,7 @@ export default function UserView() {
               }
               
               try {
-                const res = await fetch("http://localhost:8000/traffic/emergency", {
+                const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/emergency", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({

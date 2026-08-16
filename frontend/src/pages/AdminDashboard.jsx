@@ -77,7 +77,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
 
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch("http://localhost:8000/traffic/emergencies");
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/emergencies");
       if (res.ok) {
         const data = await res.json();
         setEmergencies(data);
@@ -93,7 +93,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     try {
       // Step 1: Calculate route using Dijkstra
       const routeRes = await fetch(
-        `http://localhost:8000/traffic/calculate-route?start=${encodeURIComponent(emergency.start_location)}&destination=${encodeURIComponent(emergency.destination_location)}`
+        `https://smart-traffic-backend-q3q9.onrender.com/traffic/calculate-route?start=${encodeURIComponent(emergency.start_location)}&destination=${encodeURIComponent(emergency.destination_location)}`
       );
       const routeData = await routeRes.json();
       if (!routeRes.ok) {
@@ -102,7 +102,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
       
       // Step 2: Deploy route to emergency
       const deployRes = await fetch(
-        `http://localhost:8000/admin/emergencies/${emergency.id}/route`,
+        `https://smart-traffic-backend-q3q9.onrender.com/admin/emergencies/${emergency.id}/route`,
         {
           method: "PUT",
           headers: {
@@ -131,7 +131,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   const handleClearEmergency = async (emergencyId) => {
     try {
       const res = await fetch(
-        `http://localhost:8000/admin/emergencies/${emergencyId}/clear`,
+        `https://smart-traffic-backend-q3q9.onrender.com/admin/emergencies/${emergencyId}/clear`,
         {
           method: "PUT",
           headers: {
@@ -153,7 +153,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
 
   const fetchAdminStatus = async () => {
     try {
-      const res = await fetch("http://localhost:8000/admin/admins/status", {
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/admin/admins/status", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -168,7 +168,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   const fetchLocations = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/traffic/locations");
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
       const data = await res.json();
       setLocations(data);
 
@@ -217,7 +217,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     
     setUpdating(true);
     try {
-      const res = await fetch(`http://localhost:8000/admin/locations/${selectedLoc.name}/override`, {
+      const res = await fetch(`https://smart-traffic-backend-q3q9.onrender.com/admin/locations/${selectedLoc.name}/override`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -257,7 +257,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     }
 
     try {
-      const res = await fetch("http://localhost:8000/admin/locations", {
+      const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/admin/locations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

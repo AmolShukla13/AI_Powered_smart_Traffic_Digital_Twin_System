@@ -116,7 +116,7 @@ export default function VideoDemo({
   useEffect(() => {
     const fetchLocs = async () => {
       try {
-        const res = await fetch("http://localhost:8000/traffic/locations");
+        const res = await fetch("https://smart-traffic-backend-q3q9.onrender.com/traffic/locations");
         const data = await res.json();
         setLocations(data);
         if (data.length > 0 && !selectedLocation) {
@@ -191,8 +191,8 @@ export default function VideoDemo({
 
     try {
       const url = selectedLocation 
-        ? `http://localhost:8000/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
-        : "http://localhost:8000/traffic/upload-demo";
+        ? `https://smart-traffic-backend-q3q9.onrender.com/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
+        : "https://smart-traffic-backend-q3q9.onrender.com/traffic/upload-demo";
         
       const response = await fetch(url, {
         method: "POST",
