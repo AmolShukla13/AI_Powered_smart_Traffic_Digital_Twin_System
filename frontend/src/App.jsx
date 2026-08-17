@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "./services/api";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import PrivateRoute from "./components/PrivateRoute";
@@ -109,7 +110,7 @@ function AppContent() {
 
       const syncDB = async () => {
         try {
-          await fetch(`${import.meta.env.VITE_API_URL}/admin/locations/${selectedLocation}/override`, {
+          await fetch(`${API_BASE_URL}/admin/locations/${selectedLocation}/override`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",

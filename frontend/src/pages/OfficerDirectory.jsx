@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Users, Mail, MapPin, Radio, ShieldCheck } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./OfficerDirectory.css";
 
 export default function OfficerDirectory() {
@@ -13,7 +14,7 @@ export default function OfficerDirectory() {
   const fetchOfficers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/directory`);
+      const res = await fetch(`${API_BASE_URL}/admin/directory`);
       if (res.ok) {
         const data = await res.json();
         setOfficers(data);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { User, Shield, MapPin, Edit, Download, Camera, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../services/api";
 import "./OfficerID.css";
 
 export default function OfficerID() {
@@ -38,7 +39,7 @@ export default function OfficerID() {
       return;
     }
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/profile`, {
+      const res = await fetch(`${API_BASE_URL}/auth/profile`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -75,7 +76,7 @@ export default function OfficerID() {
 
       // Save image URL to MongoDB via backend profile update endpoint
       const token = sessionStorage.getItem("token");
-      const updateRes = await fetch(`${import.meta.env.VITE_API_URL}/auth/update-profile`, {
+      const updateRes = await fetch(`${API_BASE_URL}/auth/update-profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

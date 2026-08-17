@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Shield, MapPin, Sliders, ToggleLeft, ToggleRight, Radio, RefreshCw, AlertTriangle, PlusCircle, Save, Ambulance, CheckCircle2, Navigation, Search, Lock, Cpu, Activity } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./AdminDashboard.css";
 
 const matchLocationNames = (nameA, nameB) => {
@@ -77,7 +78,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
 
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
+      const res = await fetch(`${API_BASE_URL}/traffic/emergencies`);
       if (res.ok) {
         const data = await res.json();
         setEmergencies(data);
@@ -93,7 +94,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     try {
       // Step 1: Calculate route using Dijkstra
       const routeRes = await fetch(
-        `${import.meta.env.VITE_API_URL}/traffic/calculate-route?start=${encodeURIComponent(emergency.start_location)}&destination=${encodeURIComponent(emergency.destination_location)}`
+        `${API_BASE_URL}/traffic/calculate-route?start=${encodeURIComponent(emergency.start_location)}&destination=${encodeURIComponent(emergency.destination_location)}`
       );
       const routeData = await routeRes.json();
       if (!routeRes.ok) {
@@ -102,7 +103,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
       
       // Step 2: Deploy route to emergency
       const deployRes = await fetch(
-        `${import.meta.env.VITE_API_URL}/admin/emergencies/${emergency.id}/route`,
+        `${API_BASE_URL}/admin/emergencies/${emergency.id}/route`,
         {
           method: "PUT",
           headers: {
@@ -131,7 +132,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   const handleClearEmergency = async (emergencyId) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/admin/emergencies/${emergencyId}/clear`,
+        `${API_BASE_URL}/admin/emergencies/${emergencyId}/clear`,
         {
           method: "PUT",
           headers: {
@@ -153,7 +154,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
 
   const fetchAdminStatus = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/admins/status`, {
+      const res = await fetch(`${API_BASE_URL}/admin/admins/status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -168,7 +169,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   const fetchLocations = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
+      const res = await fetch(`${API_BASE_URL}/traffic/locations`);
       const data = await res.json();
       setLocations(data);
 
@@ -217,7 +218,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     
     setUpdating(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/locations/${selectedLoc.name}/override`, {
+      const res = await fetch(`${API_BASE_URL}/admin/locations/${selectedLoc.name}/override`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -257,7 +258,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/locations`, {
+      const res = await fetch(`${API_BASE_URL}/admin/locations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

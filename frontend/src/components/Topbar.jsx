@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AlertCircle, Activity, ShieldAlert, Cpu, Database } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./Topbar.css";
 
 export default function Topbar() {
@@ -37,7 +38,7 @@ export default function Topbar() {
   // Fetch emergencies to check pending alerts
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
+      const res = await fetch(`${API_BASE_URL}/traffic/emergencies`);
       if (res.ok) {
         const data = await res.json();
         setEmergencies(data);

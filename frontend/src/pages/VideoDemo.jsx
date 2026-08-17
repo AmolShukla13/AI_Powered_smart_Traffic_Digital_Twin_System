@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { UploadCloud, Play, FileVideo, Cpu, Layers, Car, BarChart3, AlertCircle, AlertTriangle, Radio, Globe } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./VideoDemo.css";
 
 const generateMockStreamResults = () => {
@@ -116,7 +117,7 @@ export default function VideoDemo({
   useEffect(() => {
     const fetchLocs = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
+        const res = await fetch(`${API_BASE_URL}/traffic/locations`);
         const data = await res.json();
         setLocations(data);
         if (data.length > 0 && !selectedLocation) {
@@ -191,17 +192,25 @@ export default function VideoDemo({
 
     try {
       const url = selectedLocation 
-        ? `${import.meta.env.VITE_API_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
-        : `${import.meta.env.VITE_API_URL}/traffic/upload-demo`;
+        ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
+        : `${API_BASE_URL}/traffic/upload-demo`;
         
       const response = await fetch(url, {
         method: "POST",
         body: formData,
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const errorText = await response.text();
+        throw new Error(errorText || `Server returned response with status ${response.status}`);
+      }
+
       if (!response.ok) {
-        throw new Error(data.detail || "Error processing video file.");
+        throw new Error(data?.detail || "Error processing video file.");
       }
 
       setResults(data);
@@ -209,7 +218,11 @@ export default function VideoDemo({
         setActiveFrameStats(data.processed_frames[0]);
       }
     } catch (err) {
-      setError(err.message);
+      if (err.message === "Failed to fetch") {
+        setError("Network Error: Failed to fetch. This may be caused by an offline backend server, a CORS block, or a Render gateway timeout (exceeding 30 seconds processing time).");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setUploading(false);
     }

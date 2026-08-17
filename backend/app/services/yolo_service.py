@@ -56,10 +56,9 @@ class YoloService:
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         duration = total_frames / fps
 
-        # We will sample frames (e.g., 1 frame per second to speed up processing)
-        sample_rate = int(fps)
-        if sample_rate <= 0:
-            sample_rate = 1
+        # Dynamically calculate sample rate to process at most 6 frames to prevent Render 30s timeout
+        max_inference_frames = 6
+        sample_rate = max(1, total_frames // max_inference_frames)
 
         frame_count = 0
         processed_frames = []
@@ -91,7 +90,7 @@ class YoloService:
                     # Run actual YOLO detection
                     try:
                         h, w = frame.shape[:2]
-                        results = self.model(frame, verbose=False)
+                        results = self.model(frame, imgsz=320, verbose=False)
                         frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                         
                         # Process bounding boxes

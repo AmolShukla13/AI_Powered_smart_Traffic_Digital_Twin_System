@@ -9,10 +9,10 @@ from ..models import LocationResponse, AccidentPredictionReport
 from ..database import db
 from ..services.yolo_service import yolo_service
 
+import tempfile
 router = APIRouter(prefix="/traffic", tags=["Traffic & AI Analytics"])
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = tempfile.gettempdir()
 
 @router.get("/locations", response_model=List[LocationResponse])
 def get_all_locations(search: Optional[str] = None):

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { HeartPulse, Database, ShieldAlert, Cpu, RefreshCw, BarChart2, Radio, Server } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./Diagnostics.css";
 
 const matchLocationNames = (nameA, nameB) => {
@@ -43,7 +44,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
     // Simulate real-time API ping
     const pInterval = setInterval(() => {
       const start = Date.now();
-      fetch(`${import.meta.env.VITE_API_URL}/`)
+      fetch(`${API_BASE_URL}/`)
         .then(() => setPing(Date.now() - start))
         .catch(() => setPing(-1));
     }, 3000);
@@ -64,7 +65,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
   const fetchData = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const locRes = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
+      const locRes = await fetch(`${API_BASE_URL}/traffic/locations`);
       const locData = await locRes.json();
       
       const assigned = sessionStorage.getItem("assigned_location");
@@ -73,7 +74,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
         : locData;
       setLocations(filteredLocData);
 
-      const emRes = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
+      const emRes = await fetch(`${API_BASE_URL}/traffic/emergencies`);
       const emData = await emRes.json();
       const filteredEmData = assigned
         ? emData.filter(e => matchLocationNames(e.start_location, assigned) || matchLocationNames(e.destination_location, assigned) || (e.route && e.route.some(r => matchLocationNames(r, assigned))))

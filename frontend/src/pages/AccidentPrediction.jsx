@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AlertOctagon, ShieldAlert, CloudRain, Sun, CloudLightning, ShieldCheck, Thermometer, Wind, Eye } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./AccidentPrediction.css";
 
 export default function AccidentPrediction() {
@@ -31,7 +32,7 @@ export default function AccidentPrediction() {
   const fetchLocations = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
+      const res = await fetch(`${API_BASE_URL}/traffic/locations`);
       const data = await res.json();
       
       const activeLocName = sessionStorage.getItem("active_citizen_location");

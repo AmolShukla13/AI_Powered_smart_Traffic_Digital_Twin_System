@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Search, MapPin, AlertTriangle, CloudRain, Shield, RefreshCw, Navigation, Car, AlertOctagon, Ambulance, Lock } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./UserView.css";
 
 export default function UserView() {
@@ -61,7 +62,7 @@ export default function UserView() {
   // Fetch emergency requests periodically
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
+      const res = await fetch(`${API_BASE_URL}/traffic/emergencies`);
       if (res.ok) {
         const data = await res.json();
         setEmergencies(data);
@@ -113,7 +114,7 @@ export default function UserView() {
           console.error("Reverse geocoding error:", err);
         }
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
+        const res = await fetch(`${API_BASE_URL}/traffic/locations`);
         if (res.ok) {
           const dbData = await res.json();
           
@@ -233,8 +234,8 @@ export default function UserView() {
     if (!isBackground) setLoading(true);
     try {
       const url = search 
-        ? `${import.meta.env.VITE_API_URL}/traffic/locations?search=${encodeURIComponent(search)}`
-        : `${import.meta.env.VITE_API_URL}/traffic/locations`;
+        ? `${API_BASE_URL}/traffic/locations?search=${encodeURIComponent(search)}`
+        : `${API_BASE_URL}/traffic/locations`;
       const res = await fetch(url);
       const data = await res.json();
       
@@ -283,7 +284,7 @@ export default function UserView() {
     setLoading(true);
     try {
       // 1. Search in local database
-      const url = `${import.meta.env.VITE_API_URL}/traffic/locations?search=${encodeURIComponent(searchQuery)}`;
+      const url = `${API_BASE_URL}/traffic/locations?search=${encodeURIComponent(searchQuery)}`;
       const res = await fetch(url);
       const data = await res.json();
       
@@ -360,7 +361,7 @@ export default function UserView() {
           try {
             const weatherToUse = selectedLoc.predicted_weather || "Clear";
             const res = await fetch(
-              `${import.meta.env.VITE_API_URL}/traffic/predict-accident/${encodeURIComponent(selectedLoc.name)}?weather=${weatherToUse}`
+              `${API_BASE_URL}/traffic/predict-accident/${encodeURIComponent(selectedLoc.name)}?weather=${weatherToUse}`
             );
             if (res.ok) {
               const data = await res.json();
@@ -733,7 +734,7 @@ export default function UserView() {
               }
               
               try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergency`, {
+                const res = await fetch(`${API_BASE_URL}/traffic/emergency`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({

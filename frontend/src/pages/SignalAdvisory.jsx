@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { TrafficCone, AlertTriangle, ShieldCheck, Clock, ShieldAlert, Navigation } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./SignalAdvisory.css";
 
 const matchLocationNames = (nameA, nameB) => {
@@ -25,8 +26,8 @@ export default function SignalAdvisory() {
   const fetchAdvisoryData = async (isBackground = true) => {
     if (!isBackground) setLoading(true);
     try {
-      const locRes = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
-      const emRes = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
+      const locRes = await fetch(`${API_BASE_URL}/traffic/locations`);
+      const emRes = await fetch(`${API_BASE_URL}/traffic/emergencies`);
 
       if (locRes.ok && emRes.ok) {
         const locData = await locRes.json();

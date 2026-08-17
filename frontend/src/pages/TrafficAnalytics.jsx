@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Clock, AlertTriangle, ShieldCheck, HelpCircle, Info } from "lucide-react";
+import { BarChart3, LineChart, PieChart, TrendingUp, Calendar, AlertTriangle, ShieldCheck, MapPin, Clock, HelpCircle, Info } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./TrafficAnalytics.css";
 
 const matchLocationNames = (nameA, nameB) => {
@@ -27,7 +28,7 @@ export default function TrafficAnalytics({ videoResults, activeFrameStats, selec
 
   const fetchLocations = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/locations`);
+      const res = await fetch(`${API_BASE_URL}/traffic/locations`);
       if (res.ok) {
         const data = await res.json();
         

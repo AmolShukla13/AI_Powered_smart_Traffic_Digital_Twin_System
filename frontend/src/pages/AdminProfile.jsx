@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { User, Mail, Shield, Phone, Award, Lock, CheckCircle, Smartphone, Camera, MapPin } from "lucide-react";
+import { User, Mail, Shield, Phone, Award, Lock, CheckCircle, Smartphone, Camera, MapPin, Cpu, Database, Save, Radio } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./AdminProfile.css";
 
 export default function AdminProfile() {
@@ -65,7 +66,7 @@ export default function AdminProfile() {
       return;
     }
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/profile`, {
+      const res = await fetch(`${API_BASE_URL}/auth/profile`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -128,7 +129,7 @@ export default function AdminProfile() {
       return;
     }
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/update-profile`, {
+      const res = await fetch(`${API_BASE_URL}/auth/update-profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

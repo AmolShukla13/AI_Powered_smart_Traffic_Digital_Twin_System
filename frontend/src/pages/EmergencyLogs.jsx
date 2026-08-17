@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ListFilter, FileText, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./EmergencyLogs.css";
 
 const matchLocationNames = (nameA, nameB) => {
@@ -23,7 +24,7 @@ export default function EmergencyLogs() {
 
   const fetchEmergencies = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/traffic/emergencies`);
+      const res = await fetch(`${API_BASE_URL}/traffic/emergencies`);
       if (res.ok) {
         const data = await res.json();
         const assigned = sessionStorage.getItem("assigned_location");
@@ -41,7 +42,7 @@ export default function EmergencyLogs() {
     const token = sessionStorage.getItem("token");
     if (!token) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/emergencies/${id}/clear`, {
+      const res = await fetch(`${API_BASE_URL}/admin/emergencies/${id}/clear`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`

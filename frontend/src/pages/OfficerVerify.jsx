@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Shield, CheckCircle, Loader, User, MapPin, Award } from "lucide-react";
+import { API_BASE_URL } from "../services/api";
 import "./OfficerVerify.css";
 
 export default function OfficerVerify() {
@@ -12,7 +13,7 @@ export default function OfficerVerify() {
   useEffect(() => {
     const verifyBadge = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-badge/${username}`);
+        const res = await fetch(`${API_BASE_URL}/auth/verify-badge/${username}`);
         if (res.ok) {
           const data = await res.json();
           setOfficer(data);
