@@ -191,9 +191,9 @@ export default function VideoDemo({
     formData.append("file", videoFile);
 
     try {
-      const url = selectedLocation 
-        ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
-        : `${API_BASE_URL}/traffic/upload-demo`;
+      const url = selectedLocation
+  ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
+  : `${API_BASE_URL}/traffic/upload-demo`;
         
       const response = await fetch(url, {
         method: "POST",
