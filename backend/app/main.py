@@ -9,16 +9,11 @@ app = FastAPI(
 )
 
 # Enable CORS for specific React frontend origins
-allowed_origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://smart-traffic-frontend-9ukb.onrender.com"
-]
-
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
