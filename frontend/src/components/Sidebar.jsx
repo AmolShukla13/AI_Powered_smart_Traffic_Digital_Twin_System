@@ -31,7 +31,8 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar glass-panel">
+    <>
+      <aside className="sidebar glass-panel">
       {/* Brand Header */}
       <div className="sidebar-brand" onClick={() => navigate("/")}>
         <Activity className="brand-logo text-glow-cyan" />
@@ -139,7 +140,7 @@ export default function Sidebar() {
               <div className="user-details" style={{ display: "flex", flexDirection: "column", gap: "2px", overflow: "hidden", width: "100%" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                   <span className="user-name" style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)" }}>{username}</span>
-                  <span className={`role-tag ${role}`} style={{ 
+                  <span className={`role-tag ${role || ""}`} style={{ 
                     fontSize: "0.55rem", 
                     fontWeight: "950", 
                     padding: "1px 5px", 
@@ -148,7 +149,7 @@ export default function Sidebar() {
                     color: "var(--color-yellow)", 
                     border: "1px solid rgba(255, 183, 0, 0.3)",
                     letterSpacing: "0.5px"
-                  }}>{role.toUpperCase()}</span>
+                  }}>{role ? role.toUpperCase() : ""}</span>
                 </div>
                 {assignedLocation && (
                   <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "3px" }}>
@@ -188,48 +189,49 @@ export default function Sidebar() {
           </button>
         )}
       </div>
+    </aside>
 
-      {/* Logout Confirmation Modal Overlay */}
-      {showLogoutConfirm && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          background: "rgba(0,0,0,0.85)",
-          backdropFilter: "blur(6px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 9999
-        }}>
-          <div className="glass-panel" style={{ padding: "30px", width: "400px", textAlign: "center", border: "1px solid rgba(255, 51, 51, 0.4)", boxShadow: "0 0 20px rgba(255, 51, 51, 0.1)" }}>
-            <h3 style={{ margin: "0 0 15px 0", color: "var(--color-red)", letterSpacing: "1px", fontFamily: "var(--font-mono)", fontSize: "1.1rem" }}>
-              ⚠️ SECURE DISCONNECT INITIATED
-            </h3>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "25px" }}>
-              Are you sure you want to terminate the secure traffic orchestration session for officer <strong>{username}</strong>?
-            </p>
-            <div style={{ display: "flex", gap: "15px" }}>
-              <button 
-                onClick={handleLogout} 
-                className="glow-btn-cyan" 
-                style={{ flex: 1, padding: "10px", background: "rgba(255,51,51,0.08)", border: "1px solid var(--color-red)", color: "var(--color-red)", fontWeight: "bold" }}
-              >
-                Disconnect
-              </button>
-              <button 
-                onClick={() => setShowLogoutConfirm(false)} 
-                className="glow-btn-cyan" 
-                style={{ flex: 1, padding: "10px", fontWeight: "bold" }}
-              >
-                Keep Session
-              </button>
-            </div>
+    {/* Logout Confirmation Modal Overlay */}
+    {showLogoutConfirm && (
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "rgba(0,0,0,0.85)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999
+      }}>
+        <div className="glass-panel" style={{ padding: "30px", width: "400px", textAlign: "center", border: "1px solid rgba(255, 51, 51, 0.4)", boxShadow: "0 0 20px rgba(255, 51, 51, 0.1)" }}>
+          <h3 style={{ margin: "0 0 15px 0", color: "var(--color-red)", letterSpacing: "1px", fontFamily: "var(--font-mono)", fontSize: "1.1rem" }}>
+            ⚠️ SECURE DISCONNECT INITIATED
+          </h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "25px" }}>
+            Are you sure you want to terminate the secure traffic orchestration session for officer <strong>{username}</strong>?
+          </p>
+          <div style={{ display: "flex", gap: "15px" }}>
+            <button 
+              onClick={handleLogout} 
+              className="glow-btn-cyan" 
+              style={{ flex: 1, padding: "10px", background: "rgba(255,51,51,0.08)", border: "1px solid var(--color-red)", color: "var(--color-red)", fontWeight: "bold" }}
+            >
+              Disconnect
+            </button>
+            <button 
+              onClick={() => setShowLogoutConfirm(false)} 
+              className="glow-btn-cyan" 
+              style={{ flex: 1, padding: "10px", fontWeight: "bold" }}
+            >
+              Keep Session
+            </button>
           </div>
         </div>
-      )}
-    </aside>
-  );
+      </div>
+    )}
+  </>
+);
 }
