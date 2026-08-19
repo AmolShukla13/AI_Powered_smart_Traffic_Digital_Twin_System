@@ -853,8 +853,8 @@ export default function VideoDemo({
                 </div>
                 <div className="stat-card glass-card">
                   <span className="stat-lbl">CONGESTION RATING</span>
-                  <span className={`stat-val text-glow-${getStatusClass(activeFrameStats ? (activeFrameStats.density < 20 ? "Low" : activeFrameStats.density < 50 ? "Medium" : activeFrameStats.density < 80 ? "Heavy" : "Gridlock") : results.traffic_status)}`}>
-                    {activeFrameStats ? (activeFrameStats.density < 20 ? "Low" : activeFrameStats.density < 50 ? "Medium" : activeFrameStats.density < 80 ? "Heavy" : "Gridlock") : results.traffic_status}
+                  <span className={`stat-val text-glow-${getStatusClass(activeFrameStats ? activeFrameStats.traffic_status : results.traffic_status)}`}>
+                    {activeFrameStats ? activeFrameStats.traffic_status : results.traffic_status}
                   </span>
                 </div>
               </div>
@@ -1018,7 +1018,62 @@ export default function VideoDemo({
                 </div>
               </div>
             </div>
-          ) : (
+          ) : selectedLocation && locations.find(l => l.name === selectedLocation) ? (() => {
+            const selectedLocData = locations.find(l => l.name === selectedLocation);
+            return (
+              <div className="analytics-output glass-panel">
+                <div className="output-header border-bottom">
+                  <h3>LIVE TWIN TELEMETRY</h3>
+                  <span className="engine-badge font-mono" style={{ background: "rgba(0, 240, 255, 0.1)", border: "1px solid var(--color-cyan)" }}>
+                    {selectedLocData.manual_override ? "MANUAL OVERRIDE" : "AI DIGITAL-TWIN LIVE"}
+                  </span>
+                </div>
+
+                {/* Dynamic playback statistics */}
+                <div className="stats-header-row">
+                  <div className="stat-card glass-card">
+                    <span className="stat-lbl">CURRENT DENSITY</span>
+                    <span className="stat-val font-mono text-glow-cyan">
+                      {selectedLocData.current_density ? selectedLocData.current_density.toFixed(1) : "0.0"}%
+                    </span>
+                  </div>
+                  <div className="stat-card glass-card">
+                    <span className="stat-lbl">CONGESTION RATING</span>
+                    <span className={`stat-val text-glow-${getStatusClass(selectedLocData.traffic_status)}`}>
+                      {selectedLocData.traffic_status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Real-time Vehicle Counts */}
+                <div className="yolo-counts-card glass-card">
+                  <h4>ACTIVE VEHICLE TRACKS (LIVE DB)</h4>
+                  <div className="yolo-vehicle-grid">
+                    {Object.entries(selectedLocData.vehicle_counts || {}).map(([vehicle, count]) => (
+                      <div key={vehicle} className="yolo-veh-item">
+                        <Car size={16} className="veh-icon" />
+                        <div className="veh-details">
+                          <span className="veh-name">{vehicle.toUpperCase()}</span>
+                          <span className="veh-count font-mono">{count}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="video-meta-box" style={{ marginTop: "15px" }}>
+                  <div className="meta-row">
+                    <span>LAST DATABASE SYNC</span>
+                    <span className="font-mono" style={{ color: "var(--color-green)", textShadow: "0 0 5px var(--color-green)" }}>ONLINE</span>
+                  </div>
+                  <div className="meta-row">
+                    <span>OPERATIONAL MODE</span>
+                    <span className="font-mono">{selectedLocData.manual_override ? "MANUAL OVERRIDE ACTIVE" : "AI OPTIMIZED CONTROL"}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })() : (
             <div className="no-output glass-panel">
               <BarChart3 size={48} className="no-output-icon" />
               <h3>Awaiting AI Telemetry</h3>

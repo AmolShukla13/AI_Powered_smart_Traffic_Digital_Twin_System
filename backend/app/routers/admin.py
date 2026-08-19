@@ -5,6 +5,7 @@ from datetime import datetime
 from ..models import LocationCreate, LocationResponse, TrafficOverride
 from ..database import db
 from .auth import get_current_user
+from ..services.yolo_service import get_traffic_status_from_density
 
 router = APIRouter(prefix="/admin", tags=["Admin Operations"])
 
@@ -74,16 +75,8 @@ def override_traffic_settings(location_name: str, override: TrafficOverride, cur
     
     if override.current_density is not None:
         update_fields["current_density"] = override.current_density
-        # Set status based on actual density
-        density = override.current_density
-        if density < 20:
-            update_fields["traffic_status"] = "Low"
-        elif density < 50:
-            update_fields["traffic_status"] = "Medium"
-        elif density < 80:
-            update_fields["traffic_status"] = "Heavy"
-        else:
-            update_fields["traffic_status"] = "Gridlock"
+        # Set status based on actual density using the standardized helper function
+        update_fields["traffic_status"] = get_traffic_status_from_density(override.current_density)
         update_fields["is_video_data"] = True
     elif override.traffic_status is not None:
         update_fields["traffic_status"] = override.traffic_status

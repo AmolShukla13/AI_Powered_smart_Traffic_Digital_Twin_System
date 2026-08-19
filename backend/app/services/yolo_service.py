@@ -15,6 +15,16 @@ if ONNX_AVAILABLE:
 else:
     print(f"WARNING: yolov8n.onnx not found at {ONNX_MODEL_PATH}. Telemetry will fall back to simulator.")
 
+def get_traffic_status_from_density(density: float) -> str:
+    if density < 20.0:
+        return "Low"
+    elif density < 50.0:
+        return "Medium"
+    elif density < 80.0:
+        return "Heavy"
+    else:
+        return "Gridlock"
+
 class YoloService:
     def __init__(self):
         self.net = None
@@ -167,6 +177,7 @@ class YoloService:
                     "timestamp": round(timestamp, 2),
                     "vehicle_counts": frame_vehicles,
                     "density": round(current_density, 2),
+                    "traffic_status": get_traffic_status_from_density(current_density),
                     "detections": frame_detections
                 })
 
@@ -176,22 +187,9 @@ class YoloService:
 
         cap.release()
 
-        # Determine overall traffic status
-        max_vehicles = sum(cumulative_counts.values())
-        if max_vehicles < 10:
-            traffic_status = "Low"
-            overall_density = 15.0 + (max_vehicles * 3.0)
-        elif max_vehicles < 25:
-            traffic_status = "Medium"
-            overall_density = 45.0 + (max_vehicles * 1.5)
-        elif max_vehicles < 45:
-            traffic_status = "Heavy"
-            overall_density = 70.0 + (max_vehicles * 0.5)
-        else:
-            traffic_status = "Gridlock"
-            overall_density = 90.0 + (max_vehicles * 0.1)
-
+        # Determine overall traffic status using the authoritative threshold mapping
         overall_density = min(100.0, max(0.0, overall_density))
+        traffic_status = get_traffic_status_from_density(overall_density)
 
         # Predict weather condition from the video file using file keywords and visual brightness heuristics
         predicted_weather = "Clear"
