@@ -54,6 +54,11 @@ class YoloService:
         Processes a video file to count vehicles and evaluate traffic density.
         Returns a dictionary containing frame-by-frame analysis and overall stats.
         """
+        if DISABLE_YOLO or not YOLO_AVAILABLE:
+            raise RuntimeError(
+                "AI Model Unavailable: YOLOv8 AI Engine is disabled or unavailable on this server instance due to resource constraints."
+            )
+
         # Ensure model is loaded if available
         self._load_model()
 
@@ -72,9 +77,8 @@ class YoloService:
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         duration = total_frames / fps
 
-        # Dynamically calculate sample rate to process at most 6 frames to prevent Render 30s timeout
-        max_inference_frames = 6
-        sample_rate = max(1, total_frames // max_inference_frames)
+        # Sample at least 2 frames per second (every 0.5 seconds of video) to ensure smooth real-time telemetry synchronization
+        sample_rate = max(1, int(fps * 0.5))
 
         frame_count = 0
         processed_frames = []
@@ -133,7 +137,7 @@ class YoloService:
                                         "confidence": round(conf, 2)
                                     })
                         
-                        current_density = min(100.0, (sum(frame_vehicles.values()) / 120.0) * 100.0)
+                        current_density = min(100.0, (sum(frame_vehicles.values()) / 25.0) * 100.0)
                     except Exception as e:
                         # Fallback within loop if YOLO fails
                         frame_vehicles, current_density, frame_detections = self._simulate_frame_detections(timestamp)
@@ -239,7 +243,7 @@ class YoloService:
         }
 
         total_vehicles = sum(frame_vehicles.values())
-        density = min(100.0, (total_vehicles / 120.0) * 100.0)
+        density = min(100.0, (total_vehicles / 25.0) * 100.0)
         
         detections = []
         
