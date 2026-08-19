@@ -20,11 +20,7 @@ export default function SignalAdvisory() {
 
   // Alert Management States
   const [alertFilter, setAlertFilter] = useState("all"); // all, active, acknowledged
-  const [localAlerts, setLocalAlerts] = useState([
-    { id: "al-1", type: "Sensor Desync", message: "Northbound induction loop sensor latency exceeds 150ms.", priority: "Medium", status: "Active", timestamp: "5 mins ago" },
-    { id: "al-2", type: "Pedestrian Congestion", message: "Crossing button loop queue building up.", priority: "Low", status: "Active", timestamp: "12 mins ago" },
-    { id: "al-3", type: "Signal Overridden", message: "Dynamic green wave overrides signal cycle.", priority: "Critical", status: "Active", timestamp: "1 min ago" }
-  ]);
+  const [localAlerts, setLocalAlerts] = useState([]);
 
   const activeCitizenLoc = selectedLocName;
 
@@ -480,7 +476,7 @@ export default function SignalAdvisory() {
                   })
                 ) : (
                   <div style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)", fontSize: "0.75rem" }} className="glass-card">
-                    ✔ No alerts matching the current filter. System operational state: nominal.
+                    No live data available. System operational state: nominal.
                   </div>
                 )}
               </div>

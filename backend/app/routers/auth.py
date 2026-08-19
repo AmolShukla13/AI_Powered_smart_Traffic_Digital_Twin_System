@@ -9,7 +9,8 @@ from ..database import db, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-SECRET_KEY = "SMART_TRAFFIC_DIGITAL_TWIN_SECRET_KEY_9988"
+import os
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "SMART_TRAFFIC_DIGITAL_TWIN_SECRET_KEY_9988")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 600 # 10 hours for testing convenience
 
