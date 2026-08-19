@@ -23,7 +23,7 @@ export default function Sidebar() {
     localStorage.removeItem("role");
     localStorage.removeItem("username");
     localStorage.removeItem("assigned_location");
-    navigate("/login");
+    navigate("/login", { state: { message: "Logged out successfully." } });
   };
 
   const isActive = (path) => {
@@ -106,83 +106,82 @@ export default function Sidebar() {
       {/* User Section at Bottom */}
       <div className="sidebar-footer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {token ? (
-          <>
-            <div 
-              className="sidebar-user-panel glass-card"
-              style={{ 
-                cursor: "pointer", 
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "12px",
-                borderRadius: "8px",
-                background: "rgba(18, 26, 43, 0.4)",
-                border: "1px solid var(--glass-border)",
-                transition: "all 0.3s ease"
-              }}
-              onClick={() => navigate("/officer-id")}
-            >
-              <div className="user-avatar" style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                background: "rgba(0, 240, 255, 0.05)",
-                border: "1px solid rgba(0, 240, 255, 0.3)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--color-cyan)",
-                flexShrink: 0
-              }}>
-                <User size={20} />
-              </div>
-              <div className="user-details" style={{ display: "flex", flexDirection: "column", gap: "2px", overflow: "hidden", width: "100%" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                  <span className="user-name" style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)" }}>{username}</span>
-                  <span className={`role-tag ${role || ""}`} style={{ 
-                    fontSize: "0.55rem", 
-                    fontWeight: "950", 
-                    padding: "1px 5px", 
-                    borderRadius: "3px", 
-                    background: "rgba(255, 183, 0, 0.12)", 
-                    color: "var(--color-yellow)", 
-                    border: "1px solid rgba(255, 183, 0, 0.3)",
-                    letterSpacing: "0.5px"
-                  }}>{role ? role.toUpperCase() : ""}</span>
-                </div>
-                {assignedLocation && (
-                  <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "3px" }}>
-                    <MapPin size={10} style={{ color: "var(--color-cyan)" }} />
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{assignedLocation}</span>
-                  </span>
-                )}
-              </div>
+          <div 
+            className="sidebar-user-panel glass-card"
+            style={{ 
+              cursor: "pointer", 
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "12px",
+              borderRadius: "8px",
+              background: "rgba(18, 26, 43, 0.4)",
+              border: "1px solid var(--glass-border)",
+              transition: "all 0.3s ease"
+            }}
+            onClick={() => navigate("/officer-id")}
+          >
+            <div className="user-avatar" style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "rgba(0, 240, 255, 0.05)",
+              border: "1px solid rgba(0, 240, 255, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--color-cyan)",
+              flexShrink: 0
+            }}>
+              <User size={20} />
             </div>
-            
-            <button 
-              onClick={() => setShowLogoutConfirm(true)} 
-              className="nav-link-btn logout-btn-full"
+            <div className="user-details" style={{ display: "flex", flexDirection: "column", gap: "2px", overflow: "hidden", flexGrow: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                <span className="user-name" style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)" }}>{username}</span>
+                <span className={`role-tag ${role || ""}`} style={{ 
+                  fontSize: "0.55rem", 
+                  fontWeight: "950", 
+                  padding: "1px 5px", 
+                  borderRadius: "3px", 
+                  background: "rgba(255, 183, 0, 0.12)", 
+                  color: "var(--color-yellow)", 
+                  border: "1px solid rgba(255, 183, 0, 0.3)",
+                  letterSpacing: "0.5px"
+                }}>{role ? role.toUpperCase() : ""}</span>
+              </div>
+              {assignedLocation && (
+                <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "3px" }}>
+                  <MapPin size={10} style={{ color: "var(--color-cyan)" }} />
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{assignedLocation}</span>
+                </span>
+              )}
+            </div>
+            <button
+              className="logout-btn"
+              title="Logout"
               style={{
-                border: "1px solid rgba(255, 51, 51, 0.3)",
-                background: "rgba(255, 51, 51, 0.02)",
-                color: "var(--color-red)",
-                justifyContent: "center",
-                gap: "8px",
-                fontWeight: "bold",
-                width: "100%",
-                padding: "10px",
-                borderRadius: "6px",
+                flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
+                width: "28px",
+                height: "28px",
+                borderRadius: "50%",
+                border: "none",
+                background: "transparent",
+                color: "var(--text-muted)",
                 cursor: "pointer",
-                transition: "all 0.3s ease"
+                transition: "all 0.2s ease"
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLogoutConfirm(true);
               }}
             >
               <LogOut size={16} />
-              <span>SECURE LOGOUT</span>
             </button>
-          </>
+          </div>
         ) : (
           <button onClick={() => navigate("/login")} className="glow-btn-cyan login-btn">
             Connect Node
@@ -210,23 +209,23 @@ export default function Sidebar() {
           <h3 style={{ margin: "0 0 15px 0", color: "var(--color-red)", letterSpacing: "1px", fontFamily: "var(--font-mono)", fontSize: "1.1rem" }}>
             ⚠️ SECURE DISCONNECT INITIATED
           </h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "25px" }}>
-            Are you sure you want to terminate the secure traffic orchestration session for officer <strong>{username}</strong>?
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "25px" }}>
+            Are you sure you want to logout?
           </p>
           <div style={{ display: "flex", gap: "15px" }}>
-            <button 
-              onClick={handleLogout} 
-              className="glow-btn-cyan" 
-              style={{ flex: 1, padding: "10px", background: "rgba(255,51,51,0.08)", border: "1px solid var(--color-red)", color: "var(--color-red)", fontWeight: "bold" }}
-            >
-              Disconnect
-            </button>
             <button 
               onClick={() => setShowLogoutConfirm(false)} 
               className="glow-btn-cyan" 
               style={{ flex: 1, padding: "10px", fontWeight: "bold" }}
             >
-              Keep Session
+              Cancel
+            </button>
+            <button 
+              onClick={handleLogout} 
+              className="glow-btn-cyan" 
+              style={{ flex: 1, padding: "10px", background: "rgba(255,51,51,0.08)", border: "1px solid var(--color-red)", color: "var(--color-red)", fontWeight: "bold" }}
+            >
+              Logout
             </button>
           </div>
         </div>

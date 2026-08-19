@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ShieldAlert, Mail, Lock, User, MapPin, KeyRound, ArrowRight, Phone } from "lucide-react";
 import API from "../services/api";
 import "./Login.css";
@@ -27,6 +27,15 @@ export default function Login() {
   const [successMsg, setSuccessMsg] = useState("");
   
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMsg(location.state.message);
+      // Clear location state so the message doesn't persist on page refresh/navigation
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const fetchLocations = async () => {
