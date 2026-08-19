@@ -74,8 +74,8 @@ class YoloService:
             1: "bicycle"
         }
 
-        # Input dimensions for exported model
-        net_w, net_h = 320, 320
+        # Input dimensions for exported model (standard YOLOv8 resolution)
+        net_w, net_h = 640, 640
 
         while True:
             ret, frame = cap.read()
@@ -97,56 +97,59 @@ class YoloService:
                         self.net.setInput(blob)
                         outputs = self.net.forward()
                         
-                        # Output shape is [1, 84, 2100]
-                        output = outputs[0]          # Shape: [84, 2100]
-                        output = output.transpose()  # Shape: [2100, 84]
+                        # Output shape is [1, 84, 8400] for 640x640 input resolution
+                        output = outputs[0]          # Shape: [84, 8400]
+                        output = output.transpose()  # Shape: [8400, 84]
                         
-                        boxes = []
-                        confidences = []
-                        class_ids = []
+                        # Group detections by class ID to run class-by-class NMS
+                        # This prevents close objects of different classes (e.g. car and motorcycle) from suppressing each other
+                        class_boxes = {}
+                        class_confidences = {}
                         
                         for row in output:
                             classes_scores = row[4:]
                             class_id = np.argmax(classes_scores)
                             conf = float(classes_scores[class_id])
                             
-                            # Keep only vehicle objects
+                            # Keep only vehicle objects with high confidence
                             if conf > 0.25 and int(class_id) in vehicle_class_map:
                                 cx, cy, wb, hb = row[0], row[1], row[2], row[3]
                                 # Convert center box parameters to top-left corner
                                 x1 = int(cx - wb / 2.0)
                                 y1 = int(cy - hb / 2.0)
                                 
-                                boxes.append([x1, y1, int(wb), int(hb)])
-                                confidences.append(conf)
-                                class_ids.append(int(class_id))
+                                c_id = int(class_id)
+                                if c_id not in class_boxes:
+                                    class_boxes[c_id] = []
+                                    class_confidences[c_id] = []
+                                    
+                                class_boxes[c_id].append([x1, y1, int(wb), int(hb)])
+                                class_confidences[c_id].append(conf)
                                 
-                        # Apply NMS
-                        indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.45)
-                        
                         frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                         
-                        # Convert selected bounding boxes coordinates back to scale
-                        # representing relative coords (0.0 to 1.0) of original frame dimensions
-                        if len(indices) > 0:
-                            # Flatten indices if needed
-                            flat_indices = indices.flatten() if hasattr(indices, 'flatten') else [i[0] if isinstance(i, (list, tuple, np.ndarray)) else i for i in indices]
-                            for idx in flat_indices:
-                                c_id = class_ids[idx]
+                        # Apply NMS for each vehicle class separately
+                        for c_id, boxes_list in class_boxes.items():
+                            conf_list = class_confidences[c_id]
+                            indices = cv2.dnn.NMSBoxes(boxes_list, conf_list, 0.25, 0.45)
+                            
+                            if len(indices) > 0:
                                 v_type = vehicle_class_map[c_id]
-                                frame_vehicles[v_type] += 1
-                                
-                                x1, y1, wb, hb = boxes[idx]
-                                rel_x1 = max(0.0, min(1.0, x1 / net_w))
-                                rel_y1 = max(0.0, min(1.0, y1 / net_h))
-                                rel_x2 = max(0.0, min(1.0, (x1 + wb) / net_w))
-                                rel_y2 = max(0.0, min(1.0, (y1 + hb) / net_h))
-                                
-                                frame_detections.append({
-                                    "class": v_type,
-                                    "bbox": [rel_x1, rel_y1, rel_x2, rel_y2],
-                                    "confidence": round(confidences[idx], 2)
-                                })
+                                flat_indices = indices.flatten() if hasattr(indices, 'flatten') else [i[0] if isinstance(i, (list, tuple, np.ndarray)) else i for i in indices]
+                                for idx in flat_indices:
+                                    frame_vehicles[v_type] += 1
+                                    
+                                    x1, y1, wb, hb = boxes_list[idx]
+                                    rel_x1 = max(0.0, min(1.0, x1 / net_w))
+                                    rel_y1 = max(0.0, min(1.0, y1 / net_h))
+                                    rel_x2 = max(0.0, min(1.0, (x1 + wb) / net_w))
+                                    rel_y2 = max(0.0, min(1.0, (y1 + hb) / net_h))
+                                    
+                                    frame_detections.append({
+                                        "class": v_type,
+                                        "bbox": [rel_x1, rel_y1, rel_x2, rel_y2],
+                                        "confidence": round(conf_list[idx], 2)
+                                    })
                         
                         current_density = min(100.0, (sum(frame_vehicles.values()) / 25.0) * 100.0)
                     except Exception as e:
