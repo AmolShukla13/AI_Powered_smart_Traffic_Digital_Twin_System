@@ -20,6 +20,7 @@ export default function TrafficAnalytics({ videoResults, activeFrameStats, selec
   const [hourlyProfile, setHourlyProfile] = useState([0, 0, 0, 0, 0]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isLiveActive, setIsLiveActive] = useState(false);
 
   // Filters
   const [timeFilter, setTimeFilter] = useState("1h"); // 1h, 6h, 24h, peak
@@ -87,45 +88,18 @@ export default function TrafficAnalytics({ videoResults, activeFrameStats, selec
 
         setLocations(filtered);
 
-        if (filtered.length > 0) {
-          const loc = filtered[0];
-          const vc = loc.vehicle_counts || { car: 0, bus: 0, truck: 0, motorcycle: 0, bicycle: 0 };
+        const reportsRes = await fetch(`${API_BASE_URL}/traffic/reports?location_name=${encodeURIComponent(activeLocName)}&time_filter=${timeFilter}&date_filter=${dateFilter}`);
+        if (reportsRes.ok) {
+          const reportData = await reportsRes.json();
           
-          // Apply time & date filter multiplier factors to simulate historical changes
-          let multiplier = 1.0;
-          if (timeFilter === "6h") multiplier = 0.85;
-          else if (timeFilter === "24h") multiplier = 0.7;
-          else if (timeFilter === "peak") multiplier = 1.45;
-
-          if (dateFilter === "yesterday") multiplier *= 0.95;
-          else if (dateFilter === "week") multiplier *= 5.6; // Aggregate weekly stats
-
-          const cars = Math.round((vc.car || 0) * multiplier);
-          const buses = Math.round((vc.bus || 0) * multiplier);
-          const trucks = Math.round((vc.truck || 0) * multiplier);
-          const motorcycles = Math.round((vc.motorcycle || 0) * multiplier);
-          const bicycles = Math.round((vc.bicycle || 0) * multiplier);
-          const totalVehicles = cars + buses + trucks + motorcycles + bicycles;
-          
-          let density = loc.current_density || 0;
-          if (timeFilter === "peak") density = Math.min(100, Math.round(density * 1.3));
-          else if (timeFilter === "6h" || timeFilter === "24h") density = Math.round(density * 0.75);
-
-          const co2SavedVal = (cars * 5.8) + ((buses + trucks) * 29.2) + (motorcycles * 2.5);
-          const timeSavedVal = parseFloat((density * 0.25).toFixed(1));
-
-          setAvgVehicles(totalVehicles);
-          setAvgDensity(density);
-          setAvgTimeSaved(timeSavedVal);
-          setAvgCo2(co2SavedVal);
-
-          setHourlyProfile([
-            cars,
-            buses,
-            trucks,
-            motorcycles,
-            bicycles
-          ]);
+          setIsLiveActive(reportData.is_live_active);
+          setAvgVehicles(reportData.avg_vehicles);
+          setAvgDensity(reportData.avg_density);
+          setAvgTimeSaved(reportData.avg_time_saved);
+          setAvgCo2(reportData.avg_co2);
+          setHourlyProfile(reportData.hourly_profile);
+        } else {
+          setError("Failed to fetch report data from the backend.");
         }
       } else {
         setError("Failed to fetch location registry from database.");
@@ -234,7 +208,6 @@ Filter Context    : [Date Range: ${dateLabel}] [Time Window: ${timeLabel}]
   };
 
   const activeCitizenLoc = selectedLocName;
-  const isLiveActive = locations.some(l => l.is_video_data);
 
   // Dynamic status configurations
   const statusLabel = activeCitizenLoc 
@@ -338,8 +311,19 @@ Filter Context    : [Date Range: ${dateLabel}] [Time Window: ${timeLabel}]
             <button 
               onClick={handleExportCSV} 
               className="glow-btn-cyan"
-              title="Export report details to CSV sheet"
-              style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "5px", fontSize: "0.75rem", background: "rgba(0, 240, 255, 0.05)", border: "1px solid var(--color-cyan)" }}
+              disabled={!isLiveActive}
+              title={isLiveActive ? "Export report details to CSV sheet" : "No report data to export"}
+              style={{ 
+                padding: "8px 10px", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "5px", 
+                fontSize: "0.75rem", 
+                background: isLiveActive ? "rgba(0, 240, 255, 0.05)" : "transparent", 
+                border: isLiveActive ? "1px solid var(--color-cyan)" : "1px solid var(--glass-border)",
+                opacity: isLiveActive ? 1 : 0.5,
+                cursor: isLiveActive ? "pointer" : "not-allowed"
+              }}
             >
               <FileSpreadsheet size={13} />
               <span>CSV</span>
@@ -347,8 +331,19 @@ Filter Context    : [Date Range: ${dateLabel}] [Time Window: ${timeLabel}]
             <button 
               onClick={handleDownloadReport} 
               className="glow-btn-cyan"
-              title="Download executive report text"
-              style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "5px", fontSize: "0.75rem" }}
+              disabled={!isLiveActive}
+              title={isLiveActive ? "Download executive report text" : "No report data to download"}
+              style={{ 
+                padding: "8px 10px", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "5px", 
+                fontSize: "0.75rem",
+                background: isLiveActive ? "rgba(0, 240, 255, 0.05)" : "transparent", 
+                border: isLiveActive ? "1px solid var(--color-cyan)" : "1px solid var(--glass-border)",
+                opacity: isLiveActive ? 1 : 0.5,
+                cursor: isLiveActive ? "pointer" : "not-allowed"
+              }}
             >
               <Download size={13} />
               <span>EXECUTIVE REPORT</span>
@@ -378,6 +373,14 @@ Filter Context    : [Date Range: ${dateLabel}] [Time Window: ${timeLabel}]
           <AlertTriangle size={36} style={{ color: "var(--color-yellow)", opacity: 0.8 }} />
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5", maxWidth: "600px" }}>
             📍 Please select or search a location on the main map dashboard to view its live AI traffic intelligence report.
+          </p>
+        </div>
+      ) : !isLiveActive && !loading && !error ? (
+        <div className="no-output glass-panel" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 20px", textAlign: "center", marginTop: "20px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "8px" }}>
+          <BarChart3 size={64} className="no-output-icon" style={{ color: "var(--color-cyan)", opacity: 0.7, marginBottom: "20px" }} />
+          <h3 style={{ fontSize: "1.5rem", color: "var(--text-primary)", marginBottom: "10px" }}>No traffic analysis available</h3>
+          <p style={{ color: "var(--text-muted)", maxWidth: "450px", fontSize: "0.9rem", lineHeight: "1.5" }}>
+            Upload and process a traffic video for this location to generate a report.
           </p>
         </div>
       ) : (

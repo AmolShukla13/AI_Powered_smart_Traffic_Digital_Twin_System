@@ -17,6 +17,7 @@ export default function SignalAdvisory() {
   const [emergencies, setEmergencies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Alert Management States
   const [alertFilter, setAlertFilter] = useState("all"); // all, active, acknowledged
@@ -32,6 +33,7 @@ export default function SignalAdvisory() {
 
   const fetchAdvisoryData = async (isFirstLoad = false) => {
     if (isFirstLoad) setLoading(true);
+    else setRefreshing(true);
     setError("");
     try {
       const locRes = await fetch(`${API_BASE_URL}/traffic/locations`);
@@ -70,9 +72,9 @@ export default function SignalAdvisory() {
             manual_override: false,
             current_density: 0.0,
             is_video_data: false,
-            red_time: 30,
-            green_time: 30,
-            yellow_time: 5,
+            red_time: null,
+            green_time: null,
+            yellow_time: null,
             vehicle_counts: { car: 0, bus: 0, truck: 0, motorcycle: 0, bicycle: 0 }
           };
           if (activeLocDetailsStr) {
@@ -94,6 +96,7 @@ export default function SignalAdvisory() {
       setError("Unable to sync with digital twin transit gateway API.");
     } finally {
       if (isFirstLoad) setLoading(false);
+      else setRefreshing(false);
     }
   };
 
@@ -217,37 +220,50 @@ export default function SignalAdvisory() {
           <button 
             onClick={() => fetchAdvisoryData(false)} 
             className="glow-btn-cyan refresh-advisory-btn"
-            style={{ padding: "8px 15px", fontSize: "0.75rem", alignSelf: "flex-end" }}
+            disabled={refreshing}
+            style={{ padding: "8px 15px", fontSize: "0.75rem", alignSelf: "flex-end", display: "flex", alignItems: "center", gap: "6px" }}
           >
-            Refresh Updates
+            {refreshing ? (
+              <>
+                <span className="logo-pulse-icon" style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>🔄</span>
+                <span>REFRESHING...</span>
+              </>
+            ) : (
+              <span>REFRESH UPDATES</span>
+            )}
           </button>
         </div>
       </div>
 
       {/* Loading & Error Indicators */}
-      {loading && (
+      {error ? (
+        <div className="no-advisory-output glass-card" style={{ padding: "50px 30px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginTop: "20px", border: "1px solid rgba(255, 51, 51, 0.3)", background: "rgba(255, 51, 51, 0.05)" }}>
+          <AlertTriangle size={42} style={{ color: "var(--color-red)" }} />
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-red)", fontWeight: "bold" }}>
+            {error}
+          </p>
+        </div>
+      ) : loading ? (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80px", color: "var(--color-yellow)", gap: "10px", margin: "15px 0" }} className="glass-panel">
           <span className="logo-pulse-icon">⚡</span>
           <span style={{ fontSize: "0.8rem", fontWeight: "bold", fontFamily: "var(--font-mono)" }}>LOADING DIGITAL TWIN TRANSIT TELEMETRY...</span>
         </div>
-      )}
-
-      {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 51, 51, 0.08)", border: "1px solid rgba(255, 51, 51, 0.3)", color: "var(--color-red)", padding: "12px 20px", borderRadius: "6px", margin: "15px 0", fontSize: "0.8rem", fontWeight: "bold" }}>
-          <AlertTriangle size={16} />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {locations.length === 0 && !loading && !error ? (
+      ) : locations.length === 0 ? (
         <div className="no-advisory-output glass-card" style={{ padding: "50px 30px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginTop: "20px" }}>
           <AlertTriangle size={42} style={{ color: "var(--color-yellow)", opacity: 0.8 }} />
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5", maxWidth: "600px" }}>
             📍 Please select or search a location on the main map dashboard to view its live signal advisory & transit alerts.
           </p>
         </div>
+      ) : !isFeedActive ? (
+        <div className="no-advisory-output glass-card" style={{ padding: "50px 30px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginTop: "20px" }}>
+          <AlertTriangle size={42} style={{ color: "var(--color-yellow)", opacity: 0.8 }} />
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5", maxWidth: "600px" }}>
+            No live traffic data is available for {selectedLocName}. Please upload/process traffic data for this location first.
+          </p>
+        </div>
       ) : (
-        !loading && activeLocation && (
+        activeLocation && (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "20px" }}>
             
             <div className="advisory-grid">
@@ -271,15 +287,21 @@ export default function SignalAdvisory() {
                   <div className="timer-values-list">
                     <div className="timer-val-row red-bg">
                       <span className="phase-lbl">🔴 RED LIGHT DURATION</span>
-                      <span className="phase-timer font-mono">{activeLocation.red_time || 30}s</span>
+                      <span className="phase-timer font-mono">
+                        {activeLocation.red_time !== undefined && activeLocation.red_time !== null ? `${activeLocation.red_time}s` : "N/A"}
+                      </span>
                     </div>
                     <div className="timer-val-row yellow-bg">
                       <span className="phase-lbl">🟡 YELLOW LIGHT DURATION</span>
-                      <span className="phase-timer font-mono">{activeLocation.yellow_time || 5}s</span>
+                      <span className="phase-timer font-mono">
+                        {activeLocation.yellow_time !== undefined && activeLocation.yellow_time !== null ? `${activeLocation.yellow_time}s` : "N/A"}
+                      </span>
                     </div>
                     <div className="timer-val-row green-bg">
                       <span className="phase-lbl">🟢 GREEN LIGHT DURATION</span>
-                      <span className="phase-timer font-mono">{activeLocation.green_time || 30}s</span>
+                      <span className="phase-timer font-mono">
+                        {activeLocation.green_time !== undefined && activeLocation.green_time !== null ? `${activeLocation.green_time}s` : "N/A"}
+                      </span>
                     </div>
 
                     {/* Controller Override Status */}

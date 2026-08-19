@@ -188,6 +188,7 @@ class YoloService:
         cap.release()
 
         # Determine overall traffic status using the authoritative threshold mapping
+        overall_density = np.mean([f["density"] for f in sampled_counts_list]) if sampled_counts_list else 0.0
         overall_density = min(100.0, max(0.0, overall_density))
         traffic_status = get_traffic_status_from_density(overall_density)
 

@@ -129,68 +129,84 @@ def verify_password(password: str, hashed: str) -> bool:
 
 # Seed initial default locations and users if empty
 def _seed_database_internal():
-    # Seed default locations if empty
-    if db["locations"].count_documents({}) == 0:
-        default_locations = [
-            {
-                "name": "Connaught Place Crossing",
-                "latitude": 28.6304,
-                "longitude": 77.2177,
-                "traffic_status": "Low",
-                "manual_override": False,
-                "red_time": 30,
-                "green_time": 30,
-                "yellow_time": 5,
-                "current_density": 15.0,
-                "vehicle_counts": {"car": 12, "bus": 2, "truck": 1, "motorcycle": 8, "bicycle": 2},
-                "is_video_data": False,
-                "updated_at": datetime.utcnow()
-            },
-            {
-                "name": "Rajiv Chowk Metro Square",
-                "latitude": 28.6328,
-                "longitude": 77.2197,
-                "traffic_status": "Medium",
-                "manual_override": False,
-                "red_time": 30,
-                "green_time": 30,
-                "yellow_time": 5,
-                "current_density": 45.0,
-                "vehicle_counts": {"car": 24, "bus": 4, "truck": 0, "motorcycle": 15, "bicycle": 4},
-                "is_video_data": False,
-                "updated_at": datetime.utcnow()
-            },
-            {
-                "name": "India Gate Circle",
-                "latitude": 28.6129,
-                "longitude": 77.2295,
-                "traffic_status": "Heavy",
-                "manual_override": False,
-                "red_time": 45,
-                "green_time": 45,
-                "yellow_time": 5,
-                "current_density": 75.0,
-                "vehicle_counts": {"car": 45, "bus": 6, "truck": 2, "motorcycle": 28, "bicycle": 5},
-                "is_video_data": False,
-                "updated_at": datetime.utcnow()
-            },
-            {
-                "name": "Noida Sector 62 Intersection",
-                "latitude": 28.6273,
-                "longitude": 77.3725,
-                "traffic_status": "Low",
-                "manual_override": False,
-                "red_time": 30,
-                "green_time": 30,
-                "yellow_time": 5,
-                "current_density": 10.0,
-                "vehicle_counts": {"car": 5, "bus": 1, "truck": 0, "motorcycle": 4, "bicycle": 1},
-                "is_video_data": False,
-                "updated_at": datetime.utcnow()
-            }
-        ]
-        db["locations"].insert_many(default_locations)
-        print("Seeded default locations.")
+    default_locations = [
+        {
+            "name": "Connaught Place Crossing",
+            "latitude": 28.6304,
+            "longitude": 77.2177,
+            "traffic_status": "Low",
+            "manual_override": False,
+            "red_time": 30,
+            "green_time": 30,
+            "yellow_time": 5,
+            "current_density": 0.0,
+            "vehicle_counts": {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0},
+            "is_video_data": False,
+            "updated_at": datetime.utcnow()
+        },
+        {
+            "name": "Rajiv Chowk Metro Square",
+            "latitude": 28.6328,
+            "longitude": 77.2197,
+            "traffic_status": "Low",
+            "manual_override": False,
+            "red_time": 30,
+            "green_time": 30,
+            "yellow_time": 5,
+            "current_density": 0.0,
+            "vehicle_counts": {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0},
+            "is_video_data": False,
+            "updated_at": datetime.utcnow()
+        },
+        {
+            "name": "India Gate Circle",
+            "latitude": 28.6129,
+            "longitude": 77.2295,
+            "traffic_status": "Low",
+            "manual_override": False,
+            "red_time": 45,
+            "green_time": 45,
+            "yellow_time": 5,
+            "current_density": 0.0,
+            "vehicle_counts": {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0},
+            "is_video_data": False,
+            "updated_at": datetime.utcnow()
+        },
+        {
+            "name": "Noida Sector 62 Intersection",
+            "latitude": 28.6273,
+            "longitude": 77.3725,
+            "traffic_status": "Low",
+            "manual_override": False,
+            "red_time": 30,
+            "green_time": 30,
+            "yellow_time": 5,
+            "current_density": 0.0,
+            "vehicle_counts": {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0},
+            "is_video_data": False,
+            "updated_at": datetime.utcnow()
+        }
+    ]
+
+    for loc in default_locations:
+        has_real_reports = db["traffic_reports"].find_one({"location_name": loc["name"]}) is not None
+        existing = db["locations"].find_one({"name": loc["name"]})
+        if not existing:
+            loc["is_video_data"] = has_real_reports
+            db["locations"].insert_one(loc)
+        else:
+            db["locations"].update_one(
+                {"name": loc["name"]},
+                {
+                    "$set": {
+                        "is_video_data": has_real_reports,
+                        "current_density": existing.get("current_density", 0.0) if has_real_reports else 0.0,
+                        "traffic_status": existing.get("traffic_status", "Low") if has_real_reports else "Low",
+                        "vehicle_counts": existing.get("vehicle_counts", {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}) if has_real_reports else {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
+                    }
+                }
+            )
+    print("Database default locations synchronized successfully.")
 
     # Seed an admin and user if not exists
     if db["users"].count_documents({}) == 0:

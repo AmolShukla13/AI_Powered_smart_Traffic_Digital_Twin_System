@@ -145,6 +145,43 @@ def process_video_task(job_id: str, filepath: str, location_name: Optional[str])
                         }
                     }
                 )
+                
+                # Save report data in traffic_reports collection
+                cars = results["vehicle_counts"].get("car", 0)
+                buses = results["vehicle_counts"].get("bus", 0)
+                trucks = results["vehicle_counts"].get("truck", 0)
+                motorcycles = results["vehicle_counts"].get("motorcycle", 0)
+                bicycles = results["vehicle_counts"].get("bicycle", 0)
+                total_vehicles = cars + buses + trucks + motorcycles + bicycles
+                
+                density = results["density"]
+                co2_saved = (cars * 5.8) + ((buses + trucks) * 29.2) + (motorcycles * 2.5)
+                time_saved = float(round(density * 0.25, 1))
+                
+                rec = "Traffic is flowing smoothly. Maintain AI autonomous mode."
+                if density >= 70:
+                    rec = "Congestion peak detected. Extend northbound green phase cycle by 18 seconds immediately."
+                elif density >= 30:
+                    rec = "Moderate queue detected. AI recommended to prioritize lane merge lanes for dynamic clearing."
+                
+                report_doc = {
+                    "report_id": str(uuid.uuid4()),
+                    "job_id": job_id,
+                    "location_name": location_name,
+                    "timestamp": datetime.utcnow(),
+                    "vehicle_counts": results["vehicle_counts"],
+                    "total_vehicles": total_vehicles,
+                    "density": density,
+                    "traffic_status": results["traffic_status"],
+                    "red_time": loc.get("red_time", 30),
+                    "green_time": loc.get("green_time", 30),
+                    "yellow_time": loc.get("yellow_time", 5),
+                    "co2_saved": co2_saved,
+                    "time_saved": time_saved,
+                    "recommendations": rec
+                }
+                db["traffic_reports"].insert_one(report_doc)
+                
                 # Propagate results back in response
                 results["updated_location"] = location_name
             
@@ -541,3 +578,104 @@ def verify_payment(request: PaymentVerifyRequest):
 @router.get("/challans-config")
 def get_challans_config():
     return {"rto_api_active": bool(os.getenv("RTO_API_KEY"))}
+
+@router.get("/reports")
+def get_traffic_reports(
+    location_name: str,
+    time_filter: Optional[str] = Query("1h"),
+    date_filter: Optional[str] = Query("today")
+):
+    now = datetime.utcnow()
+    query = {"location_name": location_name}
+    
+    # 1. Parse date filter
+    if date_filter == "today":
+        start_date = now - timedelta(days=1)
+    elif date_filter == "yesterday":
+        start_date = now - timedelta(days=2)
+        end_date = now - timedelta(days=1)
+        query["timestamp"] = {"$gte": start_date, "$lt": end_date}
+    elif date_filter == "week":
+        start_date = now - timedelta(days=7)
+    else:
+        start_date = now - timedelta(days=1)
+        
+    if date_filter != "yesterday":
+        query["timestamp"] = {"$gte": start_date}
+
+    # 2. Parse time filter
+    if time_filter == "1h":
+        start_time = now - timedelta(hours=1)
+    elif time_filter == "6h":
+        start_time = now - timedelta(hours=6)
+    elif time_filter == "24h":
+        start_time = now - timedelta(hours=24)
+    elif time_filter == "peak":
+        start_time = now - timedelta(hours=24)
+    else:
+        start_time = now - timedelta(hours=1)
+
+    if date_filter != "yesterday":
+        query["timestamp"]["$gte"] = max(query["timestamp"]["$gte"], start_time)
+
+    reports = list(db["traffic_reports"].find(query))
+    
+    if time_filter == "peak":
+        reports = [r for r in reports if r["timestamp"].hour in [8, 9, 10, 17, 18, 19]]
+
+    if not reports:
+        return {
+            "avg_vehicles": 0,
+            "avg_density": 0.0,
+            "avg_time_saved": 0.0,
+            "avg_co2": 0.0,
+            "hourly_profile": [0, 0, 0, 0, 0],
+            "recommendations": [],
+            "is_live_active": False,
+            "reports_count": 0
+        }
+
+    total_vehicles = 0
+    total_density = 0.0
+    total_time_saved = 0.0
+    total_co2 = 0.0
+    vehicle_classes = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
+    
+    for r in reports:
+        total_vehicles += r.get("total_vehicles", 0)
+        total_density += r.get("density", 0.0)
+        total_time_saved += r.get("time_saved", 0.0)
+        total_co2 += r.get("co2_saved", 0.0)
+        vc = r.get("vehicle_counts", {})
+        for k in vehicle_classes:
+            vehicle_classes[k] += vc.get(k, 0)
+            
+    count = len(reports)
+    avg_density = total_density / count
+    
+    recommendations = []
+    for r in reports:
+        if r.get("recommendations"):
+            recommendations.append({
+                "location_name": r["location_name"],
+                "recommendation": r["recommendations"],
+                "density": r["density"],
+                "timestamp": r["timestamp"].isoformat()
+            })
+            
+    return {
+        "avg_vehicles": int(round(total_vehicles / count)),
+        "avg_density": round(avg_density, 1),
+        "avg_time_saved": round(total_time_saved / count, 1),
+        "avg_co2": round(total_co2 / count, 1),
+        "hourly_profile": [
+            int(round(vehicle_classes["car"] / count)),
+            int(round(vehicle_classes["bus"] / count)),
+            int(round(vehicle_classes["truck"] / count)),
+            int(round(vehicle_classes["motorcycle"] / count)),
+            int(round(vehicle_classes["bicycle"] / count))
+        ],
+        "recommendations": recommendations,
+        "is_live_active": True,
+        "reports_count": count
+    }

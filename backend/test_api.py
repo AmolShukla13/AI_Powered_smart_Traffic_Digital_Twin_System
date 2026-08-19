@@ -196,6 +196,8 @@ def run_tests():
         res = requests.post(f"{BASE_URL}/admin/locations", headers=headers, json=payload)
         if res.status_code == 200:
             return True, f"Created new digital twin intersection: {auth_data['new_location']}"
+        elif res.status_code == 400 and "already exists" in res.json().get("detail", ""):
+            return True, "Location already registered (expected behavior for repeat runs)."
         return False, f"Status code: {res.status_code}, Response: {res.text}"
 
     # Test 11: Override Signals (Admin)
