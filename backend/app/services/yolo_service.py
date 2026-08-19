@@ -6,7 +6,12 @@ from typing import Dict, List, Tuple, Any
 
 # Try to import YOLO from ultralytics
 YOLO_AVAILABLE = False
-DISABLE_YOLO = os.environ.get("DISABLE_YOLO", "false").lower() == "true"
+
+is_render = os.environ.get("RENDER") == "true"
+enable_yolo_render = os.environ.get("ENABLE_YOLO_ON_RENDER", "false").lower() == "true"
+disable_yolo_env = os.environ.get("DISABLE_YOLO", "false").lower() == "true"
+
+DISABLE_YOLO = disable_yolo_env or (is_render and not enable_yolo_render)
 
 if not DISABLE_YOLO:
     try:
@@ -19,7 +24,10 @@ if not DISABLE_YOLO:
     except ImportError:
         print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
 else:
-    print("YOLO is explicitly disabled via DISABLE_YOLO environment variable. Using smart simulated YOLO detector.")
+    if is_render and not enable_yolo_render:
+        print("YOLO is auto-disabled on Render to prevent OOM crash. Using smart simulated YOLO detector.")
+    else:
+        print("YOLO is explicitly disabled via DISABLE_YOLO environment variable. Using smart simulated YOLO detector.")
 
 class YoloService:
     def __init__(self):
