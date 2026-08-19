@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Query, BackgroundTasks
 from typing import List, Optional
 import os
 import shutil
+import uuid
 from datetime import datetime, timedelta
 import random
 
@@ -118,25 +119,8 @@ import heapq
 from bson import ObjectId
 from ..models import EmergencyCreate
 
-@router.post("/upload-demo")
-async def upload_demo_video(
-    file: UploadFile = File(...),
-    location_name: Optional[str] = Query(None)
-):
-    # Verify file extension
-    ext = file.filename.split(".")[-1].lower()
-    if ext not in ["mp4", "avi", "mov", "mkv"]:
-        raise HTTPException(
-            status_code=400,
-            detail="Unsupported video format. Upload mp4, avi, mov or mkv."
-        )
-
-    # Save to upload folder
-    filepath = os.path.join(UPLOAD_DIR, file.filename)
+def process_video_task(job_id: str, filepath: str, location_name: Optional[str]):
     try:
-        with open(filepath, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
         # Process the video via YOLOv8 Service
         results = yolo_service.process_video(filepath)
         
@@ -164,11 +148,87 @@ async def upload_demo_video(
                 # Propagate results back in response
                 results["updated_location"] = location_name
             
-        return results
+        db["jobs"].update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": "completed",
+                    "results": results,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
     except Exception as e:
         if os.path.exists(filepath):
             os.remove(filepath)
-        raise HTTPException(status_code=500, detail=f"Error processing video: {str(e)}")
+        db["jobs"].update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": "failed",
+                    "error": str(e),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+@router.post("/upload-demo")
+async def upload_demo_video(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    location_name: Optional[str] = Query(None)
+):
+    # Verify file extension
+    ext = file.filename.split(".")[-1].lower()
+    if ext not in ["mp4", "avi", "mov", "mkv"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported video format. Upload mp4, avi, mov or mkv."
+        )
+
+    # Check file size (max 50MB)
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    if file_size > (50 * 1024 * 1024):
+        raise HTTPException(
+            status_code=413,
+            detail="File too large. Maximum supported size is 50MB."
+        )
+
+    # Save to upload folder
+    unique_filename = f"{uuid.uuid4()}_{file.filename}"
+    filepath = os.path.join(UPLOAD_DIR, unique_filename)
+    try:
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        job_id = str(uuid.uuid4())
+        db["jobs"].insert_one({
+            "job_id": job_id,
+            "status": "processing",
+            "results": None,
+            "error": None,
+            "created_at": datetime.utcnow()
+        })
+        
+        background_tasks.add_task(process_video_task, job_id, filepath, location_name)
+        
+        return {"job_id": job_id, "status": "processing"}
+    except Exception as e:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        raise HTTPException(status_code=500, detail=f"Error starting video processing: {str(e)}")
+
+@router.get("/jobs/{job_id}")
+def get_job_status(job_id: str):
+    job = db["jobs"].find_one({"job_id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found.")
+    
+    if "_id" in job:
+        del job["_id"]
+    return job
 
 ADJACENCY_LIST = {
     "Connaught Place Crossing": [

@@ -2,7 +2,9 @@ import axios from "axios";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://smart-traffic-backend-q3qd.onrender.com";
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:8000"
+    : "https://smart-traffic-backend-q3qd.onrender.com");
 
 const API = axios.create({
   baseURL: `${API_BASE_URL}/api`,

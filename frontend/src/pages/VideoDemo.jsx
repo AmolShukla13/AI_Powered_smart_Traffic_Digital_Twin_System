@@ -82,6 +82,23 @@ export default function VideoDemo({
   const [maxGreenTime, setMaxGreenTime] = useState(30);
 
   const videoRef = useRef(null);
+  const abortControllerRef = useRef(null);
+
+  const handleReset = () => {
+    abortControllerRef.current?.abort();
+    setResults(null);
+    setIsCCTVConnected(false);
+    setVideoFile(null);
+    setPlaybackTime(0);
+    setActiveFrameStats(null);
+    setError("");
+  };
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   // Adaptive 4-way traffic light controller loop
   useEffect(() => {
@@ -144,6 +161,7 @@ export default function VideoDemo({
     setError("");
     const file = e.target.files[0];
     if (file) {
+      abortControllerRef.current?.abort();
       setVideoFile(file);
       setVideoUrl(URL.createObjectURL(file));
       setResults(null);
@@ -190,39 +208,123 @@ export default function VideoDemo({
     const formData = new FormData();
     formData.append("file", videoFile);
 
+    // Early file size limit validation (50MB)
+    if (videoFile.size > 50 * 1024 * 1024) {
+      setError("Payload Error: The selected video file exceeds the 50MB limit.");
+      setUploading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const uploadTimeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for upload start
+
     try {
       const url = selectedLocation
-  ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
-  : `${API_BASE_URL}/traffic/upload-demo`;
+        ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
+        : `${API_BASE_URL}/traffic/upload-demo`;
         
       const response = await fetch(url, {
         method: "POST",
         body: formData,
+        signal: controller.signal
       });
 
-      let data;
+      clearTimeout(uploadTimeoutId);
+
+      let initialData;
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
+        initialData = await response.json();
       } else {
         const errorText = await response.text();
         throw new Error(errorText || `Server returned response with status ${response.status}`);
       }
 
       if (!response.ok) {
-        throw new Error(data?.detail || "Error processing video file.");
+        throw new Error(initialData?.detail || `Error uploading video file (Status ${response.status}).`);
       }
 
-      setResults(data);
-      if (data.processed_frames && data.processed_frames.length > 0) {
-        setActiveFrameStats(data.processed_frames[0]);
+      const jobId = initialData.job_id;
+      if (!jobId) {
+        throw new Error("Invalid response from server: Job ID missing.");
+      }
+
+      // Poll for job completion
+      let isCompleted = false;
+      let pollCount = 0;
+      const maxPolls = 120; // 120 * 1.5s = 180s (3 mins) maximum polling time
+      
+      while (!isCompleted) {
+        if (controller.signal.aborted) {
+          throw new Error("Aborted");
+        }
+
+        // Wait 1.5s before next status fetch
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(resolve, 1500);
+          controller.signal.addEventListener("abort", () => {
+            clearTimeout(timeout);
+            reject(new Error("Aborted"));
+          });
+        });
+
+        pollCount++;
+        if (pollCount > maxPolls) {
+          throw new Error("Processing Timeout: Video processing is taking longer than expected. Please try a shorter video.");
+        }
+
+        const pollRes = await fetch(`${API_BASE_URL}/traffic/jobs/${jobId}`, {
+          signal: controller.signal
+        });
+        
+        let jobData;
+        const pollContentType = pollRes.headers.get("content-type");
+        if (pollContentType && pollContentType.includes("application/json")) {
+          jobData = await pollRes.json();
+        } else {
+          const errorText = await pollRes.text();
+          throw new Error(errorText || `Status check returned response with status ${pollRes.status}`);
+        }
+
+        if (!pollRes.ok) {
+          throw new Error(jobData?.detail || `Error checking processing status (Status ${pollRes.status}).`);
+        }
+
+        if (jobData.status === "completed") {
+          isCompleted = true;
+          setResults(jobData.results);
+          if (jobData.results.processed_frames && jobData.results.processed_frames.length > 0) {
+            setActiveFrameStats(jobData.results.processed_frames[0]);
+          }
+        } else if (jobData.status === "failed") {
+          throw new Error(jobData.error || "Video processing failed on backend server.");
+        }
       }
     } catch (err) {
-      if (err.message === "Failed to fetch") {
-        setError("Network Error: Failed to fetch. This may be caused by an offline backend server, a CORS block, or a Render gateway timeout (exceeding 30 seconds processing time).");
-      } else {
-        setError(err.message);
+      if (err.message === "Aborted") {
+        return;
       }
+      
+      let classifiedError = "Error processing video file.";
+      if (err.name === "AbortError") {
+        classifiedError = "Upload Timeout: The video upload request took longer than 15 seconds. Verify your internet connection.";
+      } else if (err.message === "Failed to fetch" || err.name === "TypeError") {
+        // Test connectivity to backend API root
+        try {
+          const pingRes = await fetch(`${API_BASE_URL}/`, { method: "GET" });
+          if (pingRes.ok) {
+            classifiedError = "CORS Block / Network Rejection: Connection established, but the server blocked the request. Verify file formats or access permissions.";
+          } else {
+            classifiedError = `CORS Block / Upload Failure: Server rejected upload with status ${pingRes.status}.`;
+          }
+        } catch (pingErr) {
+          classifiedError = "Backend Offline: The backend API server is unreachable. Please verify that the backend is running and online.";
+        }
+      } else {
+        classifiedError = err.message || classifiedError;
+      }
+      setError(classifiedError);
     } finally {
       setUploading(false);
     }
@@ -564,7 +666,7 @@ export default function VideoDemo({
             <div className="playback-section">
               <div className="playback-header">
                 <h4>{isCCTVConnected ? "🔴 LIVE GOVERNMENT CCTV FEED (STABLE)" : "AI VIDEO SYNCHRONIZATION"}</h4>
-                <button className="glow-btn-red reset-btn" onClick={() => { setResults(null); setIsCCTVConnected(false); setVideoFile(null); setPlaybackTime(0); setActiveFrameStats(null); }}>Reset Feed</button>
+                <button className="glow-btn-red reset-btn" onClick={handleReset}>Reset Feed</button>
               </div>
 
               <div className="video-player-wrapper glass-card" style={{ position: "relative", minHeight: activeTab === "cctv" ? "320px" : "auto" }}>

@@ -6,27 +6,35 @@ from typing import Dict, List, Tuple, Any
 
 # Try to import YOLO from ultralytics
 YOLO_AVAILABLE = False
-try:
-    from ultralytics import YOLO
-    # Pre-load or download the lightweight yolov8n.pt model
-    model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
-    # We will instantiate it lazily
-    YOLO_AVAILABLE = True
-except ImportError:
-    print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
+DISABLE_YOLO = os.environ.get("DISABLE_YOLO", "false").lower() == "true"
+
+if not DISABLE_YOLO:
+    try:
+        from ultralytics import YOLO
+        # Pre-load or download the lightweight yolov8n.pt model
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        model_path = os.path.join(backend_dir, "yolov8n.pt")
+        # We will instantiate it lazily
+        YOLO_AVAILABLE = True
+    except ImportError:
+        print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
+else:
+    print("YOLO is explicitly disabled via DISABLE_YOLO environment variable. Using smart simulated YOLO detector.")
 
 class YoloService:
     def __init__(self):
         self.model = None
         self._model_loaded = False
 
+
     def _load_model(self):
         global YOLO_AVAILABLE
         if YOLO_AVAILABLE and not self._model_loaded:
             try:
                 # Lazy loading to avoid delay on startup
-                model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
-                self.model = YOLO("yolov8n.pt")  # Will download to working directory automatically
+                backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                model_path = os.path.join(backend_dir, "yolov8n.pt")
+                self.model = YOLO(model_path)
                 self._model_loaded = True
                 print("YOLOv8 Model loaded successfully!")
             except Exception as e:
