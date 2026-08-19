@@ -2,63 +2,41 @@ import cv2
 import os
 import time
 import random
+import numpy as np
 from typing import Dict, List, Tuple, Any
 
-# Try to import YOLO from ultralytics
-YOLO_AVAILABLE = False
+# Locate the ONNX model file
+backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ONNX_MODEL_PATH = os.path.join(backend_dir, "yolov8n.onnx")
 
-is_render = os.environ.get("RENDER") == "true"
-enable_yolo_render = os.environ.get("ENABLE_YOLO_ON_RENDER", "false").lower() == "true"
-disable_yolo_env = os.environ.get("DISABLE_YOLO", "false").lower() == "true"
-
-DISABLE_YOLO = disable_yolo_env or (is_render and not enable_yolo_render)
-
-if not DISABLE_YOLO:
-    try:
-        from ultralytics import YOLO
-        # Pre-load or download the lightweight yolov8n.pt model
-        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        model_path = os.path.join(backend_dir, "yolov8n.pt")
-        # We will instantiate it lazily
-        YOLO_AVAILABLE = True
-    except ImportError:
-        print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
+ONNX_AVAILABLE = os.path.exists(ONNX_MODEL_PATH)
+if ONNX_AVAILABLE:
+    print(f"YOLOv8 ONNX model detected at: {ONNX_MODEL_PATH}")
 else:
-    if is_render and not enable_yolo_render:
-        print("YOLO is auto-disabled on Render to prevent OOM crash. Using smart simulated YOLO detector.")
-    else:
-        print("YOLO is explicitly disabled via DISABLE_YOLO environment variable. Using smart simulated YOLO detector.")
+    print(f"WARNING: yolov8n.onnx not found at {ONNX_MODEL_PATH}. Telemetry will fall back to simulator.")
 
 class YoloService:
     def __init__(self):
-        self.model = None
+        self.net = None
         self._model_loaded = False
 
-
     def _load_model(self):
-        global YOLO_AVAILABLE
-        if YOLO_AVAILABLE and not self._model_loaded:
+        global ONNX_AVAILABLE
+        if ONNX_AVAILABLE and not self._model_loaded:
             try:
-                # Lazy loading to avoid delay on startup
-                backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                model_path = os.path.join(backend_dir, "yolov8n.pt")
-                self.model = YOLO(model_path)
+                # Load ONNX model using OpenCV DNN
+                self.net = cv2.dnn.readNet(ONNX_MODEL_PATH)
                 self._model_loaded = True
-                print("YOLOv8 Model loaded successfully!")
+                print("YOLOv8 ONNX Model loaded successfully using OpenCV DNN!")
             except Exception as e:
-                print(f"Error loading YOLOv8 model: {e}. Falling back to simulation.")
-                YOLO_AVAILABLE = False
+                print(f"Error loading YOLOv8 ONNX model: {e}. Falling back to simulation.")
+                ONNX_AVAILABLE = False
 
     def process_video(self, video_path: str) -> Dict[str, Any]:
         """
         Processes a video file to count vehicles and evaluate traffic density.
         Returns a dictionary containing frame-by-frame analysis and overall stats.
         """
-        if DISABLE_YOLO or not YOLO_AVAILABLE:
-            raise RuntimeError(
-                "AI Model Unavailable: YOLOv8 AI Engine is disabled or unavailable on this server instance due to resource constraints."
-            )
-
         # Ensure model is loaded if available
         self._load_model()
 
@@ -96,6 +74,9 @@ class YoloService:
             1: "bicycle"
         }
 
+        # Input dimensions for exported model
+        net_w, net_h = 320, 320
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -106,43 +87,73 @@ class YoloService:
                 frame_detections = []
                 
                 # Analyze frame
-                if YOLO_AVAILABLE and self.model is not None:
-                    # Run actual YOLO detection
+                if ONNX_AVAILABLE and self.net is not None:
+                    # Run actual YOLO detection using OpenCV DNN
                     try:
                         h, w = frame.shape[:2]
-                        results = self.model(frame, imgsz=320, verbose=False)
+                        
+                        # Prepare input blob
+                        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (net_w, net_h), swapRB=True, crop=False)
+                        self.net.setInput(blob)
+                        outputs = self.net.forward()
+                        
+                        # Output shape is [1, 84, 2100]
+                        output = outputs[0]          # Shape: [84, 2100]
+                        output = output.transpose()  # Shape: [2100, 84]
+                        
+                        boxes = []
+                        confidences = []
+                        class_ids = []
+                        
+                        for row in output:
+                            classes_scores = row[4:]
+                            class_id = np.argmax(classes_scores)
+                            conf = float(classes_scores[class_id])
+                            
+                            # Keep only vehicle objects
+                            if conf > 0.25 and int(class_id) in vehicle_class_map:
+                                cx, cy, wb, hb = row[0], row[1], row[2], row[3]
+                                # Convert center box parameters to top-left corner
+                                x1 = int(cx - wb / 2.0)
+                                y1 = int(cy - hb / 2.0)
+                                
+                                boxes.append([x1, y1, int(wb), int(hb)])
+                                confidences.append(conf)
+                                class_ids.append(int(class_id))
+                                
+                        # Apply NMS
+                        indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.45)
+                        
                         frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                         
-                        # Process bounding boxes
-                        for result in results:
-                            boxes = result.boxes
-                            for box in boxes:
-                                cls_id = int(box.cls[0].item())
-                                if cls_id in vehicle_class_map:
-                                    v_type = vehicle_class_map[cls_id]
-                                    frame_vehicles[v_type] += 1
-                                    
-                                    # Get bounding box coords and normalize
-                                    xyxy = box.xyxy[0].tolist()
-                                    rel_x1 = max(0.0, min(1.0, xyxy[0] / w))
-                                    rel_y1 = max(0.0, min(1.0, xyxy[1] / h))
-                                    rel_x2 = max(0.0, min(1.0, xyxy[2] / w))
-                                    rel_y2 = max(0.0, min(1.0, xyxy[3] / h))
-                                    
-                                    conf = float(box.conf[0].item())
-                                    
-                                    frame_detections.append({
-                                        "class": v_type,
-                                        "bbox": [rel_x1, rel_y1, rel_x2, rel_y2],
-                                        "confidence": round(conf, 2)
-                                    })
+                        # Convert selected bounding boxes coordinates back to scale
+                        # representing relative coords (0.0 to 1.0) of original frame dimensions
+                        if len(indices) > 0:
+                            # Flatten indices if needed
+                            flat_indices = indices.flatten() if hasattr(indices, 'flatten') else [i[0] if isinstance(i, (list, tuple, np.ndarray)) else i for i in indices]
+                            for idx in flat_indices:
+                                c_id = class_ids[idx]
+                                v_type = vehicle_class_map[c_id]
+                                frame_vehicles[v_type] += 1
+                                
+                                x1, y1, wb, hb = boxes[idx]
+                                rel_x1 = max(0.0, min(1.0, x1 / net_w))
+                                rel_y1 = max(0.0, min(1.0, y1 / net_h))
+                                rel_x2 = max(0.0, min(1.0, (x1 + wb) / net_w))
+                                rel_y2 = max(0.0, min(1.0, (y1 + hb) / net_h))
+                                
+                                frame_detections.append({
+                                    "class": v_type,
+                                    "bbox": [rel_x1, rel_y1, rel_x2, rel_y2],
+                                    "confidence": round(confidences[idx], 2)
+                                })
                         
                         current_density = min(100.0, (sum(frame_vehicles.values()) / 25.0) * 100.0)
                     except Exception as e:
-                        # Fallback within loop if YOLO fails
+                        print(f"OpenCV DNN inference failed: {e}. Falling back to simulation.")
                         frame_vehicles, current_density, frame_detections = self._simulate_frame_detections(timestamp)
                 else:
-                    # Simulation Mode
+                    # Simulation Mode fallback (if model is missing)
                     frame_vehicles, current_density, frame_detections = self._simulate_frame_detections(timestamp)
 
                 # Track max values
@@ -157,8 +168,7 @@ class YoloService:
                 })
 
             frame_count += 1
-            # Cap video processing time to prevent timeouts for long videos in demo
-            if frame_count > 1500: # Approx 1 min of video at 25fps
+            if frame_count > 1500: # Cap at 1 min of video
                 break
 
         cap.release()
@@ -214,7 +224,7 @@ class YoloService:
             "traffic_status": traffic_status,
             "density": round(overall_density, 2),
             "predicted_weather": predicted_weather,
-            "detection_method": "YOLOv8 AI Engine" if YOLO_AVAILABLE else "Smart Digital-Twin Simulator"
+            "detection_method": "YOLOv8 ONNX AI Engine" if self._model_loaded else "Smart Digital-Twin Simulator"
         }
 
     def _simulate_frame_detections(self, timestamp: float) -> Tuple[Dict[str, int], float, List[Dict[str, Any]]]:
@@ -225,8 +235,8 @@ class YoloService:
         # Seed by timestamp to maintain relative continuity
         random.seed(int(timestamp * 10))
         
-        # Base counts that fluctuate smoothly between 10 and 52 vehicles
-        base = max(5, int(25 + 20 * (math.sin(timestamp / 6.0) + 0.3 * math.cos(timestamp / 2.0))))
+        # Base counts that fluctuate smoothly between 5 and 45 vehicles
+        base = max(5, int(15 + 10 * (math.sin(timestamp / 6.0) + 0.3 * math.cos(timestamp / 2.0))))
         
         cars = max(1, int(base * 0.6 + random.randint(-2, 2)))
         motorcycles = max(0, int(base * 0.25 + random.randint(-2, 2)))
@@ -304,4 +314,3 @@ class YoloService:
         return frame_vehicles, density, detections
 
 yolo_service = YoloService()
-
