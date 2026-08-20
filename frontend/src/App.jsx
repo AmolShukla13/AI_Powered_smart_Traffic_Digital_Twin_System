@@ -54,7 +54,7 @@ function AppContent() {
   const [activeFrameStats, setActiveFrameStats] = useState(null);
   const [playbackTime, setPlaybackTime] = useState(0);
   const [isCCTVConnected, setIsCCTVConnected] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(() => sessionStorage.getItem("assigned_location") || "");
   const [activeTab, setActiveTab] = useState("file");
   const [streamUrl, setStreamUrl] = useState("");
   const [cctvPasskey, setCctvPasskey] = useState("");
@@ -104,8 +104,8 @@ function AppContent() {
     if (!token) return;
 
     const now = Date.now();
-    // Sync every 5 seconds (5000ms) without clearing interval issues
-    if (now - lastSyncTimeRef.current >= 5000) {
+    // Sync every 1.5 seconds (1500ms) without clearing interval issues for near real-time updates
+    if (now - lastSyncTimeRef.current >= 1500) {
       lastSyncTimeRef.current = now;
 
       const syncDB = async () => {
@@ -117,7 +117,8 @@ function AppContent() {
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              manual_override: false, // AI remains in control
+              // We omit manual_override, red_time, green_time, and yellow_time here
+              // so that if the admin has set custom manual overrides, we don't overwrite them!
               current_density: activeFrameStats.density,
               vehicle_counts: {
                 car: activeFrameStats.vehicle_counts?.car || 0,
@@ -126,9 +127,6 @@ function AppContent() {
                 motorcycle: activeFrameStats.vehicle_counts?.motorcycle || 0,
                 bicycle: activeFrameStats.vehicle_counts?.bicycle || 0
               },
-              red_time: 30,
-              green_time: 30,
-              yellow_time: 5,
               is_video_data: true,
               predicted_weather: videoResults?.predicted_weather || "Clear"
             })

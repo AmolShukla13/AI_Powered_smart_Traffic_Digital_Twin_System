@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amol Shukla - Resume</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333333;
+            margin: 0;
+            padding: 40px;
+            font-size: 13.5px;
+            line-height: 1.45;
+            background-color: #ffffff;
+        }
+
+        .resume-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Header block */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0 0 5px 0;
+            color: #111111;
+            text-transform: uppercase;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #444444;
+        }
+
+        .contact-info {
+            font-size: 12px;
+            color: #555555;
+        }
+
+        .contact-info a {
+            color: #555555;
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Section headers */
+        h2.section-title {
+            font-size: 13.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 20px 0 5px 0;
+            padding: 0;
+            color: #111111;
+            letter-spacing: 0.5px;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid #777777;
+            margin: 0 0 10px 0;
+            padding: 0;
+        }
+
+        /* Entry structure */
+        .entry {
+            margin-bottom: 12px;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .entry-subheader {
+            display: flex;
+            justify-content: space-between;
+            font-style: italic;
+            color: #444444;
+            margin-bottom: 5px;
+        }
+
+        .entry-location {
+            font-weight: normal;
+        }
+
+        /* Bullets */
+        ul {
+            margin: 0 0 8px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 4px;
+            text-align: justify;
+        }
+
+        /* Skills table styling */
+        .skills-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .skills-grid td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .skills-category {
+            font-weight: bold;
+            width: 220px;
+        }
+
+        /* Print overrides */
+        @media print {
+            body {
+                padding: 20px 30px;
+                font-size: 12.5px;
+                line-height: 1.4;
+            }
+            .resume-container {
+                max-width: 100%;
+            }
+            /* Prevent orphan headings */
+            h2, hr, .entry-header {
+                page-break-after: avoid;
+            }
+            .entry {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="name">Amol Shukla</h1>
+            <div class="title">Aspiring Software Development Engineer in Test (SDET)</div>
+            <div class="contact-info">
+                Maholi, Sitapur, India | +91 9026063381 | <a href="mailto:shuklaamulshukla@gmail.com">shuklaamulshukla@gmail.com</a> | <a href="https://linkedin.com">LinkedIn</a> | <a href="https://github.com">GitHub</a>
+            </div>
+        </div>
+
+        <!-- Professional Summary -->
+        <h2 class="section-title">Professional Summary</h2>
+        <hr>
+        <p style="margin: 0 0 15px 0; text-align: justify;">
+            Computer Science Engineering student with hands-on experience developing and debugging full-stack and AI-powered applications using React.js, Node.js, Express.js, MongoDB, Java, and Python. Skilled in REST API development, Google Gemini AI integration, and applying Data Structures & Algorithms to solve programming problems. Passionate about building clean, scalable, and reliable software and collaborating in product-focused engineering teams.
+        </p>
+
+        <!-- Education -->
+        <h2 class="section-title">Education</h2>
+        <hr>
+        <div class="entry">
+            <div class="entry-header">
+                <span>Bachelor of Technology (B.Tech) &mdash; Computer Science and Engineering</span>
+                <span>09/2023 &ndash; Expected June 2027</span>
+            </div>
+            <div class="entry-subheader">
+                <span>Dr. A.P.J. Abdul Kalam Technical University (AKTU), Uttar Pradesh <span class="entry-location">&mdash; Ghaziabad</span></span>
+            </div>
+            <ul>
+                <li>Academic Performance: <strong>SGPA up to 7.51 (up to Semester VI)</strong></li>
+            </ul>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <span>Senior Secondary (Class XII &mdash; Uttar Pradesh Board)</span>
+                <span>Graduated 2022</span>
+            </div>
+            <div class="entry-subheader">
+                <span>Saraswati Vidya Mandir Inter College</span>
+            </div>
+            <ul>
+                <li>Academic Score: <strong>76.6% (PCM)</strong></li>
+            </ul>
+        </div>
+        <div class="entry" style="margin-bottom: 15px;">
+            <div class="entry-header">
+                <span>Secondary (Class X &mdash; Uttar Pradesh Board)</span>
+                <span>Graduated 2020</span>
+            </div>
+            <div class="entry-subheader">
+                <span>Saraswati Vidya Mandir Inter College</span>
+            </div>
+            <ul>
+                <li>Academic Score: <strong>82.5%</strong></li>
+            </ul>
+        </div>
+
+        <!-- Technical Skills -->
+        <h2 class="section-title">Technical Skills</h2>
+        <hr>
+        <table class="skills-grid">
+            <tr>
+                <td class="skills-category">Languages:</td>
+                <td>Java, Python, JavaScript, TypeScript</td>
+            </tr>
+            <tr>
+                <td class="skills-category">Web & APIs:</td>
+                <td>HTML5, CSS3, React.js, Node.js, Express.js, REST APIs</td>
+            </tr>
+            <tr>
+                <td class="skills-category">Databases:</td>
+                <td>MongoDB Atlas, SQL</td>
+            </tr>
+            <tr>
+                <td class="skills-category">Software Engineering & Testing:</td>
+                <td>Debugging, Problem Solving, Reliability, SDLC, Agile/Scrum</td>
+            </tr>
+            <tr>
+                <td class="skills-category">AI & API Integration:</td>
+                <td>Google Gemini AI, Generative AI</td>
+            </tr>
+            <tr>
+                <td class="skills-category">Core CS:</td>
+                <td>Data Structures & Algorithms, OOP, DBMS, Operating Systems, Computer Networks</td>
+            </tr>
+            <tr>
+                <td class="skills-category">Tools & Cloud:</td>
+                <td>Git, GitHub, Render, VS Code</td>
+            </tr>
+        </table>
+
+        <!-- Internship Experience -->
+        <h2 class="section-title">Internship Experience</h2>
+        <hr>
+        <div class="entry" style="margin-bottom: 15px;">
+            <div class="entry-header">
+                <span>Full Stack Developer Trainee</span>
+                <span>June 2026 &ndash; August 2026</span>
+            </div>
+            <div class="entry-subheader">
+                <span>BRANDVIO</span>
+            </div>
+            <ul>
+                <li><strong>Requirement Translation:</strong> Collaborated with clients and stakeholders to gather business requirements, translating them into functional system specifications, user stories, and interactive wireframes.</li>
+                <li><strong>Full-Stack Development:</strong> Developed responsive, user-friendly frontend interfaces and supported backend services using modern JavaScript frameworks.</li>
+                <li><strong>API & Data Orchestration:</strong> Engineered and integrated secure RESTful APIs to facilitate seamless data exchange between client-facing interfaces and backend databases.</li>
+                <li><strong>Agile Collaboration & QA:</strong> Participated actively in Agile/Scrum sprint planning, using Git/GitHub for version control, and conducting comprehensive testing/debugging to ensure high application quality.</li>
+            </ul>
+        </div>
+
+        <!-- Project Experience -->
+        <h2 class="section-title">Project Experience</h2>
+        <hr>
+        <div class="entry">
+            <div class="entry-header">
+                <span>AI-Powered Smart Traffic Digital Twin</span>
+                <span>Personal Project</span>
+            </div>
+            <div class="entry-subheader">
+                <span>Tech Stack: React.js, Python, FastAPI, YOLOv8, MongoDB Atlas, CSS3</span>
+            </div>
+            <ul>
+                <li><strong>AI-powered Web Application:</strong> Developed a digital twin web application with a React frontend and Python FastAPI backend to visualize real-time traffic parameters.</li>
+                <li><strong>Requirement Analysis:</strong> Designed a digital twin dashboard interface to manage manual overrides and display traffic metrics clearly for administrators.</li>
+                <li><strong>Predictive Modeling:</strong> Designed a weather-driven algorithm to predict road safety ratings and generate dynamic accident risk reports.</li>
+            </ul>
+        </div>
+        <div class="entry" style="margin-bottom: 15px;">
+            <div class="entry-header">
+                <span>Worker Safety & Wage Assurance System</span>
+                <span>Personal Project</span>
+            </div>
+            <div class="entry-subheader">
+                <span>Tech Stack: React.js, Node.js, Express.js, MongoDB Atlas, JWT Auth, Cloudinary</span>
+            </div>
+            <ul>
+                <li><strong>Full-Stack Dashboard Architecture:</strong> Engineered a full-stack worker safety management system featuring distinct, responsive dashboard environments for Workers and Administrators.</li>
+                <li><strong>Feature Orchestration:</strong> Implemented secure JWT-based authentication, interactive attendance logs, automated wage tracking, and a real-time complaint workflow.</li>
+                <li><strong>Secure RESTful APIs:</strong> Designed and integrated REST APIs with MongoDB Atlas and Express.js to execute secure CRUD operations and role-based access controls.</li>
+                <li><strong>Media & Document Services:</strong> Integrated Cloudinary API for secure image management and built server-side PDF generation to deliver downloadable payslips.</li>
+            </ul>
+        </div>
+
+        <!-- Achievements & Certificates -->
+        <h2 class="section-title">Achievements & Certificates</h2>
+        <hr>
+        <ul>
+            <li><strong>Certifications & Training:</strong> Earned NPTEL Elite certification in Java Programming (88% score, IIT Kharagpur) and completed academic training in Introduction to Operating Systems (IIT Madras).</li>
+            <li><strong>AI & Data Analytics:</strong> Completed GenAI-Powered Data Analytics Job Simulation, performing exploratory data analysis, AI-based risk prediction, and business reporting.</li>
+            <li><strong>Fundamentals of Java:</strong> Completed Fundamentals of Java Programming course certificate by Coursera (Board Infinity).</li>
+            <li><strong>Academic Performance:</strong> Achieved strong academic performance in B.Tech CS with SGPA up to 7.51 (completed 6 semesters).</li>
+        </ul>
+    </div>
+</body>
+</html>

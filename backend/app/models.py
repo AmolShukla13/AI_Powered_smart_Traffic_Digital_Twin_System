@@ -56,7 +56,7 @@ class LocationResponse(BaseModel):
     has_admin: Optional[bool] = False
 
 class TrafficOverride(BaseModel):
-    manual_override: bool
+    manual_override: Optional[bool] = None
     traffic_status: Optional[str] = None
     red_time: Optional[int] = None
     green_time: Optional[int] = None

@@ -52,12 +52,14 @@ export default function UserView() {
 
   // Fetch locations on mount and poll periodically to update telemetry in real-time
   useEffect(() => {
-    fetchLocations();
+    fetchLocations(searchQuery);
     const interval = setInterval(() => {
-      fetchLocations(searchQuery, true); // silent background poll
-    }, 3000);
+      // Poll details for the currently selected location or searchQuery to avoid clearing selection
+      const searchToPoll = searchQuery || (selectedLoc ? selectedLoc.name : "");
+      fetchLocations(searchToPoll, true); // silent background poll
+    }, 1500);
     return () => clearInterval(interval);
-  }, [searchQuery]);
+  }, [searchQuery, selectedLoc]);
 
   // Fetch emergency requests periodically
   const fetchEmergencies = async () => {

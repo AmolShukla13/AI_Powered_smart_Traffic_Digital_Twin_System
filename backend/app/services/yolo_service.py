@@ -2,45 +2,36 @@ import cv2
 import os
 import time
 import random
-import numpy as np
 from typing import Dict, List, Tuple, Any
 
-# Locate the ONNX model file
-backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-ONNX_MODEL_PATH = os.path.join(backend_dir, "yolov8n.onnx")
-
-ONNX_AVAILABLE = os.path.exists(ONNX_MODEL_PATH)
-if ONNX_AVAILABLE:
-    print(f"YOLOv8 ONNX model detected at: {ONNX_MODEL_PATH}")
-else:
-    print(f"WARNING: yolov8n.onnx not found at {ONNX_MODEL_PATH}. Telemetry will fall back to simulator.")
-
-def get_traffic_status_from_density(density: float) -> str:
-    if density < 20.0:
-        return "Low"
-    elif density < 50.0:
-        return "Medium"
-    elif density < 80.0:
-        return "Heavy"
-    else:
-        return "Gridlock"
+# Try to import YOLO from ultralytics
+YOLO_AVAILABLE = False
+try:
+    from ultralytics import YOLO
+    # Pre-load or download the lightweight yolov8n.pt model
+    model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
+    # We will instantiate it lazily
+    YOLO_AVAILABLE = True
+except ImportError:
+    print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
 
 class YoloService:
     def __init__(self):
-        self.net = None
+        self.model = None
         self._model_loaded = False
 
     def _load_model(self):
-        global ONNX_AVAILABLE
-        if ONNX_AVAILABLE and not self._model_loaded:
+        global YOLO_AVAILABLE
+        if YOLO_AVAILABLE and not self._model_loaded:
             try:
-                # Load ONNX model using OpenCV DNN
-                self.net = cv2.dnn.readNet(ONNX_MODEL_PATH)
+                # Lazy loading to avoid delay on startup
+                model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
+                self.model = YOLO("yolov8n.pt")  # Will download to working directory automatically
                 self._model_loaded = True
-                print("YOLOv8 ONNX Model loaded successfully using OpenCV DNN!")
+                print("YOLOv8 Model loaded successfully!")
             except Exception as e:
-                print(f"Error loading YOLOv8 ONNX model: {e}. Falling back to simulation.")
-                ONNX_AVAILABLE = False
+                print(f"Error loading YOLOv8 model: {e}. Falling back to simulation.")
+                YOLO_AVAILABLE = False
 
     def process_video(self, video_path: str) -> Dict[str, Any]:
         """
@@ -63,14 +54,18 @@ class YoloService:
 
         fps = cap.get(cv2.CAP_PROP_FPS) or 25
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if total_frames <= 0:
+            total_frames = 300  # Assume 12 seconds at 25fps as fallback
         duration = total_frames / fps
 
-        # Sample at least 2 frames per second (every 0.5 seconds of video) to ensure smooth real-time telemetry synchronization
-        sample_rate = max(1, int(fps * 0.5))
+        # Dynamically calculate sample rate to process at most 6 frames to prevent Render 30s timeout
+        max_inference_frames = 6
+        if total_frames <= max_inference_frames:
+            sampled_indices = list(range(total_frames))
+        else:
+            # Spread the samples evenly across the video
+            sampled_indices = [int(i * (total_frames - 1) / (max_inference_frames - 1)) for i in range(max_inference_frames)]
 
-        frame_count = 0
-        processed_frames = []
-        
         cumulative_counts = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
         sampled_counts_list = []
 
@@ -84,113 +79,91 @@ class YoloService:
             1: "bicycle"
         }
 
-        # Input dimensions for exported model (standard YOLOv8 resolution)
-        net_w, net_h = 640, 640
+        # Keep track of the first valid frame we read to use for weather prediction check
+        first_frame = None
 
-        while True:
+        for frame_idx in sampled_indices:
+            # Seek directly to the desired frame index to avoid decoding every frame
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
             ret, frame = cap.read()
-            if not ret:
-                break
+            if not ret or frame is None:
+                continue
 
-            if frame_count % sample_rate == 0:
-                timestamp = frame_count / fps
-                frame_detections = []
-                
-                # Analyze frame
-                if ONNX_AVAILABLE and self.net is not None:
-                    # Run actual YOLO detection using OpenCV DNN
-                    try:
-                        h, w = frame.shape[:2]
-                        
-                        # Prepare input blob
-                        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (net_w, net_h), swapRB=True, crop=False)
-                        self.net.setInput(blob)
-                        outputs = self.net.forward()
-                        
-                        # Output shape is [1, 84, 8400] for 640x640 input resolution
-                        output = outputs[0]          # Shape: [84, 8400]
-                        output = output.transpose()  # Shape: [8400, 84]
-                        
-                        # Group detections by class ID to run class-by-class NMS
-                        # This prevents close objects of different classes (e.g. car and motorcycle) from suppressing each other
-                        class_boxes = {}
-                        class_confidences = {}
-                        
-                        for row in output:
-                            classes_scores = row[4:]
-                            class_id = np.argmax(classes_scores)
-                            conf = float(classes_scores[class_id])
-                            
-                            # Keep only vehicle objects with high confidence
-                            if conf > 0.25 and int(class_id) in vehicle_class_map:
-                                cx, cy, wb, hb = row[0], row[1], row[2], row[3]
-                                # Convert center box parameters to top-left corner
-                                x1 = int(cx - wb / 2.0)
-                                y1 = int(cy - hb / 2.0)
+            if first_frame is None:
+                first_frame = frame.copy()
+
+            timestamp = frame_idx / fps
+            frame_detections = []
+            
+            # Analyze frame
+            if YOLO_AVAILABLE and self.model is not None:
+                # Run actual YOLO detection
+                try:
+                    h, w = frame.shape[:2]
+                    results = self.model(frame, imgsz=320, verbose=False)
+                    frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
+                    
+                    # Process bounding boxes
+                    for result in results:
+                        boxes = result.boxes
+                        for box in boxes:
+                            cls_id = int(box.cls[0].item())
+                            if cls_id in vehicle_class_map:
+                                v_type = vehicle_class_map[cls_id]
+                                frame_vehicles[v_type] += 1
                                 
-                                c_id = int(class_id)
-                                if c_id not in class_boxes:
-                                    class_boxes[c_id] = []
-                                    class_confidences[c_id] = []
-                                    
-                                class_boxes[c_id].append([x1, y1, int(wb), int(hb)])
-                                class_confidences[c_id].append(conf)
+                                # Get bounding box coords and normalize
+                                xyxy = box.xyxy[0].tolist()
+                                rel_x1 = max(0.0, min(1.0, xyxy[0] / w))
+                                rel_y1 = max(0.0, min(1.0, xyxy[1] / h))
+                                rel_x2 = max(0.0, min(1.0, xyxy[2] / w))
+                                rel_y2 = max(0.0, min(1.0, xyxy[3] / h))
                                 
-                        frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
-                        
-                        # Apply NMS for each vehicle class separately
-                        for c_id, boxes_list in class_boxes.items():
-                            conf_list = class_confidences[c_id]
-                            indices = cv2.dnn.NMSBoxes(boxes_list, conf_list, 0.25, 0.45)
-                            
-                            if len(indices) > 0:
-                                v_type = vehicle_class_map[c_id]
-                                flat_indices = indices.flatten() if hasattr(indices, 'flatten') else [i[0] if isinstance(i, (list, tuple, np.ndarray)) else i for i in indices]
-                                for idx in flat_indices:
-                                    frame_vehicles[v_type] += 1
-                                    
-                                    x1, y1, wb, hb = boxes_list[idx]
-                                    rel_x1 = max(0.0, min(1.0, x1 / net_w))
-                                    rel_y1 = max(0.0, min(1.0, y1 / net_h))
-                                    rel_x2 = max(0.0, min(1.0, (x1 + wb) / net_w))
-                                    rel_y2 = max(0.0, min(1.0, (y1 + hb) / net_h))
-                                    
-                                    frame_detections.append({
-                                        "class": v_type,
-                                        "bbox": [rel_x1, rel_y1, rel_x2, rel_y2],
-                                        "confidence": round(conf_list[idx], 2)
-                                    })
-                        
-                        current_density = min(100.0, (sum(frame_vehicles.values()) / 25.0) * 100.0)
-                    except Exception as e:
-                        print(f"OpenCV DNN inference failed: {e}. Falling back to simulation.")
-                        frame_vehicles, current_density, frame_detections = self._simulate_frame_detections(timestamp)
-                else:
-                    # Simulation Mode fallback (if model is missing)
+                                conf = float(box.conf[0].item())
+                                
+                                frame_detections.append({
+                                    "class": v_type,
+                                    "bbox": [rel_x1, rel_y1, rel_x2, rel_y2],
+                                    "confidence": round(conf, 2)
+                                })
+                    
+                    current_density = min(100.0, (sum(frame_vehicles.values()) / 120.0) * 100.0)
+                except Exception as e:
+                    # Fallback within loop if YOLO fails
                     frame_vehicles, current_density, frame_detections = self._simulate_frame_detections(timestamp)
+            else:
+                # Simulation Mode
+                frame_vehicles, current_density, frame_detections = self._simulate_frame_detections(timestamp)
 
-                # Track max values
-                for v_type, count in frame_vehicles.items():
-                    cumulative_counts[v_type] = max(cumulative_counts[v_type], count)
+            # Track max values
+            for v_type, count in frame_vehicles.items():
+                cumulative_counts[v_type] = max(cumulative_counts[v_type], count)
 
-                sampled_counts_list.append({
-                    "timestamp": round(timestamp, 2),
-                    "vehicle_counts": frame_vehicles,
-                    "density": round(current_density, 2),
-                    "traffic_status": get_traffic_status_from_density(current_density),
-                    "detections": frame_detections
-                })
-
-            frame_count += 1
-            if frame_count > 1500: # Cap at 1 min of video
-                break
+            sampled_counts_list.append({
+                "timestamp": round(timestamp, 2),
+                "vehicle_counts": frame_vehicles,
+                "density": round(current_density, 2),
+                "detections": frame_detections
+            })
 
         cap.release()
 
-        # Determine overall traffic status using the authoritative threshold mapping
-        overall_density = np.mean([f["density"] for f in sampled_counts_list]) if sampled_counts_list else 0.0
+        # Determine overall traffic status
+        max_vehicles = sum(cumulative_counts.values())
+        if max_vehicles < 10:
+            traffic_status = "Low"
+            overall_density = 15.0 + (max_vehicles * 3.0)
+        elif max_vehicles < 25:
+            traffic_status = "Medium"
+            overall_density = 45.0 + (max_vehicles * 1.5)
+        elif max_vehicles < 45:
+            traffic_status = "Heavy"
+            overall_density = 70.0 + (max_vehicles * 0.5)
+        else:
+            traffic_status = "Gridlock"
+            overall_density = 90.0 + (max_vehicles * 0.1)
+
         overall_density = min(100.0, max(0.0, overall_density))
-        traffic_status = get_traffic_status_from_density(overall_density)
 
         # Predict weather condition from the video file using file keywords and visual brightness heuristics
         predicted_weather = "Clear"
@@ -203,18 +176,15 @@ class YoloService:
             predicted_weather = "Stormy"
         else:
             try:
-                # Perform a lightweight visual contrast/brightness check on a sample frame
-                cap2 = cv2.VideoCapture(video_path)
-                ret2, frame2 = cap2.read()
-                if ret2:
-                    gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+                # Perform a lightweight visual contrast/brightness check on the cached first frame
+                if first_frame is not None:
+                    gray = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
                     mean_brightness = float(cv2.mean(gray)[0])
                     # If very dark or overcast, classify as Rainy or Stormy
                     if mean_brightness < 60:
                         predicted_weather = "Stormy"
                     elif mean_brightness < 90:
                         predicted_weather = "Rainy"
-                cap2.release()
             except Exception:
                 pass
 
@@ -226,7 +196,7 @@ class YoloService:
             "traffic_status": traffic_status,
             "density": round(overall_density, 2),
             "predicted_weather": predicted_weather,
-            "detection_method": "YOLOv8 ONNX AI Engine" if self._model_loaded else "Smart Digital-Twin Simulator"
+            "detection_method": "YOLOv8 AI Engine" if YOLO_AVAILABLE else "Smart Digital-Twin Simulator"
         }
 
     def _simulate_frame_detections(self, timestamp: float) -> Tuple[Dict[str, int], float, List[Dict[str, Any]]]:
@@ -237,8 +207,8 @@ class YoloService:
         # Seed by timestamp to maintain relative continuity
         random.seed(int(timestamp * 10))
         
-        # Base counts that fluctuate smoothly between 5 and 45 vehicles
-        base = max(5, int(15 + 10 * (math.sin(timestamp / 6.0) + 0.3 * math.cos(timestamp / 2.0))))
+        # Base counts that fluctuate smoothly between 10 and 52 vehicles
+        base = max(5, int(25 + 20 * (math.sin(timestamp / 6.0) + 0.3 * math.cos(timestamp / 2.0))))
         
         cars = max(1, int(base * 0.6 + random.randint(-2, 2)))
         motorcycles = max(0, int(base * 0.25 + random.randint(-2, 2)))
@@ -255,7 +225,7 @@ class YoloService:
         }
 
         total_vehicles = sum(frame_vehicles.values())
-        density = min(100.0, (total_vehicles / 25.0) * 100.0)
+        density = min(100.0, (total_vehicles / 120.0) * 100.0)
         
         detections = []
         
@@ -316,3 +286,4 @@ class YoloService:
         return frame_vehicles, density, detections
 
 yolo_service = YoloService()
+

@@ -54,11 +54,11 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
     fetchLocations();
     fetchEmergencies();
     
-    // Background polling every 3 seconds to fetch fresh traffic density and emergencies
+    // Background polling every 1.5 seconds to fetch fresh traffic density and emergencies
     const interval = setInterval(() => {
       fetchEmergencies();
       fetchLocations(true); // background silent fetch
-    }, 3000);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, []);
@@ -66,7 +66,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   // Sync local selectedLoc when global selectedLocation changes
   useEffect(() => {
     if (selectedLocation && locations.length > 0) {
-      const matched = locations.find(l => l.name === selectedLocation);
+      const matched = locations.find(l => matchLocationNames(l.name, selectedLocation));
       if (matched && matched.name !== selectedLoc?.name) {
         handleSelectLocation(matched);
       }
@@ -824,6 +824,12 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
                   </button>
                 )}
               </form>
+            </div>
+          ) : assignedLocation ? (
+            <div className="no-selection glass-panel">
+              <Activity size={48} className="no-selection-icon spin" style={{ color: "var(--color-cyan)" }} />
+              <h3>Loading {assignedLocation} Control Panel...</h3>
+              <p>Establishing secure connection to grid node telemetry...</p>
             </div>
           ) : (
             <div className="no-selection glass-panel">

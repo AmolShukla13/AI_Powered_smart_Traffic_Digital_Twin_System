@@ -69,9 +69,11 @@ def override_traffic_settings(location_name: str, override: TrafficOverride, cur
         )
 
     update_fields = {
-        "manual_override": override.manual_override,
         "updated_at": datetime.utcnow()
     }
+    
+    if override.manual_override is not None:
+        update_fields["manual_override"] = override.manual_override
     
     if override.current_density is not None:
         update_fields["current_density"] = override.current_density
