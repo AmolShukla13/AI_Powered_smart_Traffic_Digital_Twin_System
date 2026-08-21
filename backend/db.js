@@ -11,24 +11,21 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const mongoUri = process.env.MONGODB_URI || "";
 let client = null;
-let db = null;
+export let db = null;
 
 if (mongoUri) {
   try {
-    client = new MongoClient(mongoUri);
-    await client.connect();
+    client = new MongoClient(mongoUri, {
+      serverSelectionTimeoutMS: 3000,
+      connectTimeoutMS: 3000
+    });
     db = client.db("smart_traffic_twin");
-    console.log("Successfully connected to MongoDB Atlas!");
   } catch (err) {
-    console.error(`MongoDB connection failed: ${err.message}. Falling back to memory DB simulation.`);
     db = createMockDb();
   }
 } else {
-  console.log("MONGODB_URI not set. Falling back to memory DB simulation.");
   db = createMockDb();
 }
-
-export { db };
 
 // Helper to hash password
 export async function hashPassword(password) {
@@ -46,6 +43,20 @@ export async function verifyPassword(password, hashed) {
 
 // Seeding function
 export async function seedDatabase() {
+  try {
+    if (client) {
+      const pingPromise = client.db("admin").command({ ping: 1 });
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out")), 2000));
+      await Promise.race([pingPromise, timeoutPromise]);
+      console.log("Successfully connected to MongoDB Atlas!");
+    } else {
+      throw new Error("MongoDB client is not initialized.");
+    }
+  } catch (err) {
+    console.error(`MongoDB connection failed: ${err.message}. Falling back to memory DB simulation.`);
+    db = createMockDb();
+  }
+
   try {
     // 1. Rename any existing "Sitapur" location or user assignment
     await db.collection("locations").updateMany(
