@@ -114,7 +114,7 @@ class YoloService:
                 # Run actual YOLO detection
                 try:
                     h, w = frame.shape[:2]
-                    results = self.model(frame, imgsz=160, verbose=False)
+                    results = self.model(frame, imgsz=320, verbose=False)
                     frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                     
                     # Process bounding boxes
