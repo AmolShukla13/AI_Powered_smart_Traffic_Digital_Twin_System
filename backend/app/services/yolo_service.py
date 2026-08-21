@@ -300,6 +300,12 @@ class YoloService:
         return frame_vehicles, density, detections
 
 yolo_service = YoloService()
+# Load model on module import in the main thread to prevent background thread lazy-loading failures
+try:
+    yolo_service._load_model()
+except Exception as e:
+    print(f"Startup YOLO model load failed: {e}")
+
 
 def get_traffic_status_from_density(density: float) -> str:
     if density < 30.0:

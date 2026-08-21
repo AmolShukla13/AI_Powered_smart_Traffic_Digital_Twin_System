@@ -200,9 +200,9 @@ def _seed_database_internal():
                 {
                     "$set": {
                         "is_video_data": has_real_reports,
-                        "current_density": existing.get("current_density", 0.0) if has_real_reports else 0.0,
-                        "traffic_status": existing.get("traffic_status", "Low") if has_real_reports else "Low",
-                        "vehicle_counts": existing.get("vehicle_counts", {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}) if has_real_reports else {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
+                        "current_density": 0.0,
+                        "traffic_status": "Low",
+                        "vehicle_counts": {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                     }
                 }
             )

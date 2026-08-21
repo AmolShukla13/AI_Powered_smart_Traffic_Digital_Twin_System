@@ -93,6 +93,32 @@ export default function VideoDemo({
     setPlaybackTime(0);
     setActiveFrameStats(null);
     setError("");
+
+    // Reset database state for the location to 0
+    if (selectedLocation) {
+      const token = sessionStorage.getItem("token");
+      if (token) {
+        fetch(`${API_BASE_URL}/admin/locations/${encodeURIComponent(selectedLocation)}/override`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            current_density: 0.0,
+            vehicle_counts: {
+              car: 0,
+              bus: 0,
+              truck: 0,
+              motorcycle: 0,
+              bicycle: 0
+            },
+            is_video_data: false,
+            predicted_weather: "Clear"
+          })
+        }).catch(err => console.error("Error resetting location metrics:", err));
+      }
+    }
   };
 
   useEffect(() => {
