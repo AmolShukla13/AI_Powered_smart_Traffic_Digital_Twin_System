@@ -192,7 +192,7 @@
   color: var(--text-muted);
 }
 
-/* Right Panel - YOLO Analytics output */
+/* Right Panel - RT-DETR Analytics output */
 .analytics-output {
   padding: 24px;
 }
@@ -251,7 +251,7 @@
 }
 
 /* Vehicle grid */
-.yolo-counts-card h4 {
+.rtdetr-counts-card h4 {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--text-secondary);
@@ -259,13 +259,13 @@
   margin-bottom: 12px;
 }
 
-.yolo-vehicle-grid {
+.rtdetr-vehicle-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 
-.yolo-veh-item {
+.rtdetr-veh-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -381,7 +381,7 @@
   .videodemo-grid {
     grid-template-columns: 1fr;
   }
-  .yolo-vehicle-grid {
+  .rtdetr-vehicle-grid {
     grid-template-columns: 1fr 1fr;
   }
 }

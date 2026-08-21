@@ -49,7 +49,7 @@ const generateMockStreamResults = () => {
     vehicle_counts: { car: 15, bus: 2, motorcycle: 7, truck: 0, bicycle: 0 },
     processed_frames,
     duration,
-    detection_method: "YOLOv8 RTSP STREAM"
+    detection_method: "RT-DETR RTSP STREAM"
   };
 };
 
@@ -223,7 +223,7 @@ export default function VideoDemo({
       // Load free stock Delhi-like traffic camera video
       setVideoUrl("https://assets.mixkit.co/videos/preview/mixkit-intersection-traffic-in-a-busy-city-at-night-42656-large.mp4");
       
-      // Generate simulated YOLO live feed analysis data
+      // Generate simulated RT-DETR live feed analysis data
       const mockResults = generateMockStreamResults();
       setResults(mockResults);
       if (mockResults.processed_frames && mockResults.processed_frames.length > 0) {
@@ -364,14 +364,14 @@ export default function VideoDemo({
     }
   };
 
-  // Automatically trigger YOLO processing when a new video file is selected
+  // Automatically trigger RT-DETR processing when a new video file is selected
   useEffect(() => {
     if (videoFile && !results && !uploading) {
       handleUpload();
     }
   }, [videoFile, results, uploading]);
 
-  // Sync video playback time with YOLO frame results
+  // Sync video playback time with RT-DETR frame results
   const handleTimeUpdate = () => {
     if (!videoRef.current || !results || !results.processed_frames) return;
     const currentTime = videoRef.current.currentTime;
@@ -407,7 +407,7 @@ export default function VideoDemo({
         <div className="videodemo-header-meta">
           <Cpu className="videodemo-header-icon text-glow-cyan" />
           <div>
-            <h1>YOLOv8 AI VIDEO ANALYTICS DEMO</h1>
+            <h1>RT-DETR AI VIDEO ANALYTICS DEMO</h1>
             <p>Upload a traffic feed video file to trigger object detection and congestion rating.</p>
           </div>
         </div>
@@ -695,7 +695,7 @@ export default function VideoDemo({
                     className="glow-btn-cyan start-detect-btn"
                     disabled={uploading}
                   >
-                    {uploading ? "Running YOLOv8 Object Tracking..." : "Process Video feed"}
+                    {uploading ? "Running RT-DETR Object Tracking..." : "Process Video feed"}
                   </button>
                 )
               ) : (
@@ -784,7 +784,7 @@ export default function VideoDemo({
                         {videoRef.current && !videoRef.current.paused && (
                           <div className="scanner-line fast"></div>
                         )}
-                        <span className="live-ai-overlay-tag">YOLOv8 DEPLOYED</span>
+                        <span className="live-ai-overlay-tag">RT-DETR DEPLOYED</span>
                       </div>
                     )}
                   </>
@@ -880,12 +880,12 @@ export default function VideoDemo({
           )}
         </div>
 
-        {/* Right Side: YOLO Analytics Output */}
+        {/* Right Side: RT-DETR Analytics Output */}
         <div className="videodemo-right">
           {results ? (
             <div className="analytics-output glass-panel">
               <div className="output-header border-bottom">
-                <h3>YOLO DETECTOR TELEMETRY</h3>
+                <h3>RT-DETR DETECTOR TELEMETRY</h3>
                 <span className="engine-badge font-mono">{results.detection_method}</span>
               </div>
 
@@ -906,11 +906,11 @@ export default function VideoDemo({
               </div>
 
               {/* Real-time Vehicle Counts */}
-              <div className="yolo-counts-card glass-card">
+              <div className="rtdetr-counts-card glass-card">
                 <h4>ACTIVE VEHICLE TRACKS (REAL-TIME)</h4>
-                <div className="yolo-vehicle-grid">
+                <div className="rtdetr-vehicle-grid">
                   {Object.entries(activeFrameStats?.vehicle_counts || results.vehicle_counts).map(([vehicle, count]) => (
-                    <div key={vehicle} className="yolo-veh-item">
+                    <div key={vehicle} className="rtdetr-veh-item">
                       <Car size={16} className="veh-icon" />
                       <div className="veh-details">
                         <span className="veh-name">{vehicle.toUpperCase()}</span>
@@ -922,7 +922,7 @@ export default function VideoDemo({
               </div>
 
               {/* Live 4-Way Adaptive Signal HUD */}
-              <div className="yolo-counts-card glass-card" style={{ marginTop: "15px", padding: "15px" }}>
+              <div className="rtdetr-counts-card glass-card" style={{ marginTop: "15px", padding: "15px" }}>
                 <h4 style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 10px 0" }}>
                   <span>🚦 4-WAY ADAPTIVE SIGNALS</span>
                   <span style={{ fontSize: "0.65rem", color: "var(--color-yellow)", fontWeight: "bold", background: "rgba(255,204,0,0.05)", padding: "2px 6px", borderRadius: "3px", border: "1px solid rgba(255,204,0,0.15)" }}>
@@ -1092,11 +1092,11 @@ export default function VideoDemo({
                 </div>
 
                 {/* Real-time Vehicle Counts */}
-                <div className="yolo-counts-card glass-card">
+                <div className="rtdetr-counts-card glass-card">
                   <h4>ACTIVE VEHICLE TRACKS (LIVE DB)</h4>
-                  <div className="yolo-vehicle-grid">
+                  <div className="rtdetr-vehicle-grid">
                     {Object.entries(selectedLocData.vehicle_counts || {}).map(([vehicle, count]) => (
-                      <div key={vehicle} className="yolo-veh-item">
+                      <div key={vehicle} className="rtdetr-veh-item">
                         <Car size={16} className="veh-icon" />
                         <div className="veh-details">
                           <span className="veh-name">{vehicle.toUpperCase()}</span>
@@ -1123,7 +1123,7 @@ export default function VideoDemo({
             <div className="no-output glass-panel">
               <BarChart3 size={48} className="no-output-icon" />
               <h3>Awaiting AI Telemetry</h3>
-              <p>Upload a video feed to view real-time YOLO parameters and object classification charts.</p>
+              <p>Upload a video feed to view real-time RT-DETR parameters and object classification charts.</p>
             </div>
           )}
         </div>

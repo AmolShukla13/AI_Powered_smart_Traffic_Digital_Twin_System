@@ -17,7 +17,7 @@ export default function Topbar() {
       case "/admin":
         return "Traffic Control Room Dashboard";
       case "/video-demo":
-        return "YOLOv8 AI Video Analytics";
+        return "RT-DETR AI Video Analytics";
       case "/accident-reports":
         return "Accident Prediction Risk Center";
       case "/diagnostics":
@@ -81,7 +81,7 @@ export default function Topbar() {
         {/* AI Model Status */}
         <div className="status-indicator-badge model">
           <Cpu size={12} />
-          <span>AI MODEL: YOLOv8n</span>
+          <span>AI MODEL: RT-DETR-Nano</span>
         </div>
       </div>
     </header>

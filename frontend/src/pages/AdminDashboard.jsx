@@ -569,7 +569,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
                 </div>
                 <div className="telemetry-card glass-card" style={{ padding: "10px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>AI ACCURACY</span>
-                  <span style={{ fontSize: "0.8rem", fontWeight: "bold", color: "var(--color-cyan)" }}>{liveAccuracy}% (YOLOv8)</span>
+                  <span style={{ fontSize: "0.8rem", fontWeight: "bold", color: "var(--color-cyan)" }}>{liveAccuracy}% (RT-DETR)</span>
                 </div>
                 <div className="telemetry-card glass-card" style={{ padding: "10px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>SIGNAL HARDWARE</span>

@@ -19,7 +19,7 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
   const [logs, setLogs] = useState([
     `[INFO] ${new Date().toISOString().slice(0, 10)} - System diagnostics monitoring initialized.`,
     "[OK] Database connection established to Cluster0 Atlas cluster.",
-    "[OK] YOLOv8 lightweight neural model loaded into local cache memory.",
+    "[OK] RT-DETR lightweight neural model loaded into local cache memory.",
     "[INFO] CORS origins initialized. Web client listening on port 5173.",
     "[OK] Dijkstra algorithm routing optimizer active."
   ]);
@@ -216,17 +216,17 @@ export default function Diagnostics({ videoResults, activeFrameStats, selectedLo
 
       {/* Dynamic bottom telemetry panels */}
       <div className="diagnostics-grid" style={{ marginTop: "20px" }}>
-        {/* YOLO Neural engine specifications */}
+        {/* RT-DETR Neural engine specifications */}
         <div className="diagnostics-card glass-panel">
           <div className="card-header border-bottom">
             <Cpu size={18} className="card-icon green" style={{ color: "var(--color-green)" }} />
-            <h4>YOLO AI MODEL ENGINE STATUS</h4>
+            <h4>RT-DETR AI MODEL ENGINE STATUS</h4>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div className="telemetry-info-row" style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: "8px" }}>
               <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Neural Model Core</span>
-              <span className="font-mono" style={{ fontSize: "0.8rem", fontWeight: "bold" }}>YOLOv8-Nano (Lightweight)</span>
+              <span className="font-mono" style={{ fontSize: "0.8rem", fontWeight: "bold" }}>RT-DETR-Nano (Lightweight)</span>
             </div>
             <div className="telemetry-info-row" style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: "8px" }}>
               <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Inference Speed</span>
