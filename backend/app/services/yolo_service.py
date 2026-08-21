@@ -24,11 +24,29 @@ class YoloService:
         global YOLO_AVAILABLE
         if YOLO_AVAILABLE and not self._model_loaded:
             try:
-                # Lazy loading to avoid delay on startup
-                model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
-                self.model = YOLO("yolov8n.pt")  # Will download to working directory automatically
+                # Limit PyTorch CPU threads to avoid locking uvicorn event loop
+                try:
+                    import torch
+                    torch.set_num_threads(2)
+                except ImportError:
+                    pass
+                
+                # Check root directory or current directory for yolov8n.pt
+                possible_paths = [
+                    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "yolov8n.pt"), # backend/yolov8n.pt
+                    "yolov8n.pt",
+                    os.path.join(os.path.dirname(__file__), "yolov8n.pt")
+                ]
+                model_to_load = "yolov8n.pt"
+                for p in possible_paths:
+                    if os.path.exists(p):
+                        model_to_load = p
+                        print(f"Found local YOLO model at: {p}")
+                        break
+                
+                self.model = YOLO(model_to_load)
                 self._model_loaded = True
-                print("YOLOv8 Model loaded successfully!")
+                print(f"YOLOv8 Model ({model_to_load}) loaded successfully!")
             except Exception as e:
                 print(f"Error loading YOLOv8 model: {e}. Falling back to simulation.")
                 YOLO_AVAILABLE = False
@@ -58,8 +76,7 @@ class YoloService:
             total_frames = 300  # Assume 12 seconds at 25fps as fallback
         duration = total_frames / fps
 
-        # Dynamically calculate sample rate to process at most 6 frames to prevent Render 30s timeout
-        max_inference_frames = 6
+        max_inference_frames = 3
         if total_frames <= max_inference_frames:
             sampled_indices = list(range(total_frames))
         else:
@@ -100,7 +117,7 @@ class YoloService:
                 # Run actual YOLO detection
                 try:
                     h, w = frame.shape[:2]
-                    results = self.model(frame, imgsz=320, verbose=False)
+                    results = self.model(frame, imgsz=160, verbose=False)
                     frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                     
                     # Process bounding boxes
