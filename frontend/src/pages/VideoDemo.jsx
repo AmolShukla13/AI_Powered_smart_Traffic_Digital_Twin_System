@@ -331,6 +331,13 @@ export default function VideoDemo({
     }
   };
 
+  // Automatically trigger YOLO processing when a new video file is selected
+  useEffect(() => {
+    if (videoFile && !results && !uploading) {
+      handleUpload();
+    }
+  }, [videoFile, results, uploading]);
+
   // Sync video playback time with YOLO frame results
   const handleTimeUpdate = () => {
     if (!videoRef.current || !results || !results.processed_frames) return;
