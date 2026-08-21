@@ -4,8 +4,14 @@ import time
 import random
 from typing import Dict, List, Tuple, Any
 
-# Forced to False for instant, real-time simulated AI digital twin telemetry with zero CPU latency
+# Try to import YOLO from ultralytics
 YOLO_AVAILABLE = False
+try:
+    from ultralytics import YOLO
+    YOLO_AVAILABLE = True
+except ImportError:
+    print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
+
 
 class YoloService:
     def __init__(self):
@@ -67,8 +73,7 @@ class YoloService:
         if total_frames <= 0:
             total_frames = 300  # Assume 12 seconds at 25fps as fallback
         duration = total_frames / fps
-
-        max_inference_frames = 3
+        max_inference_frames = 2
         if total_frames <= max_inference_frames:
             sampled_indices = list(range(total_frames))
         else:
