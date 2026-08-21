@@ -131,21 +131,28 @@ export default function VideoDemo({
     return () => clearInterval(interval);
   }, [results, isCCTVConnected, activeFrameStats, signalPhase]);
 
-  // Fetch locations on mount to populate dropdown
+  // Fetch locations on mount and poll every 5s to ensure connection resiliency
   useEffect(() => {
     const fetchLocs = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/traffic/locations`);
-        const data = await res.json();
-        setLocations(data);
-        if (data.length > 0 && !selectedLocation) {
-          setSelectedLocation(data[0].name);
+        if (res.ok) {
+          const data = await res.json();
+          setLocations(data);
+          setSelectedLocation((prev) => {
+            if (data.length > 0 && !prev) {
+              return data[0].name;
+            }
+            return prev;
+          });
         }
       } catch (err) {
         console.error("Error fetching locations:", err);
       }
     };
     fetchLocs();
+    const interval = setInterval(fetchLocs, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Restore video playback time on mount if there's saved progress
