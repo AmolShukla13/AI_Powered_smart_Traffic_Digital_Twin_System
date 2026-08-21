@@ -377,13 +377,18 @@ export default function VideoDemo({
     const currentTime = videoRef.current.currentTime;
     setPlaybackTime(currentTime);
 
-    // Find closest frame to current playback time
+    // Find closest frame to current playback time (with wrap-around loop)
     const frames = results.processed_frames;
+    if (frames.length === 0) return;
+
+    const maxTimestamp = frames[frames.length - 1].timestamp;
+    const lookupTime = maxTimestamp > 0 ? currentTime % (maxTimestamp + 1.0) : currentTime;
+
     let closest = frames[0];
-    let minDiff = Math.abs(frames[0].timestamp - currentTime);
+    let minDiff = Math.abs(frames[0].timestamp - lookupTime);
 
     for (let i = 1; i < frames.length; i++) {
-      const diff = Math.abs(frames[i].timestamp - currentTime);
+      const diff = Math.abs(frames[i].timestamp - lookupTime);
       if (diff < minDiff) {
         minDiff = diff;
         closest = frames[i];

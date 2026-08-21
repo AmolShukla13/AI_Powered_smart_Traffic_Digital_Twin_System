@@ -77,10 +77,15 @@ function AppContent() {
 
         // Update active frame stats in the background
         const frames = videoResults.processed_frames;
+        if (frames.length === 0) return finalTime;
+
+        const maxTimestamp = frames[frames.length - 1].timestamp;
+        const lookupTime = maxTimestamp > 0 ? finalTime % (maxTimestamp + 1.0) : finalTime;
+
         let closest = frames[0];
-        let minDiff = Math.abs(frames[0].timestamp - finalTime);
+        let minDiff = Math.abs(frames[0].timestamp - lookupTime);
         for (let i = 1; i < frames.length; i++) {
-          const diff = Math.abs(frames[i].timestamp - finalTime);
+          const diff = Math.abs(frames[i].timestamp - lookupTime);
           if (diff < minDiff) {
             minDiff = diff;
             closest = frames[i];

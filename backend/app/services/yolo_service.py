@@ -73,12 +73,11 @@ class YoloService:
         if total_frames <= 0:
             total_frames = 300  # Assume 12 seconds at 25fps as fallback
         duration = total_frames / fps
-        max_inference_frames = 4
-        if total_frames <= max_inference_frames:
-            sampled_indices = list(range(total_frames))
-        else:
-            # Spread the samples evenly across the video
-            sampled_indices = [int(i * (total_frames - 1) / (max_inference_frames - 1)) for i in range(max_inference_frames)]
+        # Sample every 1.0 second up to 20 frames to make bounding boxes move smoothly
+        frame_step = max(1, int(1.0 * fps))
+        sampled_indices = [i * frame_step for i in range(20) if i * frame_step < total_frames]
+        if not sampled_indices:
+            sampled_indices = [0]
 
         cumulative_counts = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
         sampled_counts_list = []
