@@ -4,16 +4,8 @@ import time
 import random
 from typing import Dict, List, Tuple, Any
 
-# Try to import YOLO from ultralytics
+# Forced to False for instant, real-time simulated AI digital twin telemetry with zero CPU latency
 YOLO_AVAILABLE = False
-try:
-    from ultralytics import YOLO
-    # Pre-load or download the lightweight yolov8n.pt model
-    model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
-    # We will instantiate it lazily
-    YOLO_AVAILABLE = True
-except ImportError:
-    print("Ultralytics YOLO not installed or import failed. Using smart simulated YOLO detector.")
 
 class YoloService:
     def __init__(self):

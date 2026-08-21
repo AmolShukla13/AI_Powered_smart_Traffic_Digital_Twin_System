@@ -385,7 +385,7 @@ export default function VideoDemo({
       <div className="videodemo-grid">
         {/* Left Side: Upload & Playback Video */}
         <div className="videodemo-left glass-panel">
-          {!results && !videoUrl ? (
+          {!results ? (
             <div className="upload-section">
               {/* Tab Selector */}
               <div className="tab-container" style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
@@ -844,62 +844,7 @@ export default function VideoDemo({
                   </div>
                 )}
               </div>
-              {activeTab === "file" && !results && (
-                <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {locations.length > 0 && (
-                    <div className="location-select-container glass-card" style={{
-                      width: "100%",
-                      padding: "12px 15px",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "stretch",
-                      gap: "6px",
-                      background: "rgba(0, 0, 0, 0.2)",
-                      border: "1px solid var(--glass-border)",
-                      textAlign: "left"
-                    }}>
-                      <label style={{ fontSize: "0.7rem", fontWeight: "800", color: "var(--color-cyan)", letterSpacing: "1px" }}>
-                        CHOOSE TARGET INTERSECTION TO SYNCHRONIZE
-                      </label>
-                      <select
-                        value={selectedLocation}
-                        onChange={(e) => setSelectedLocation(e.target.value)}
-                        style={{
-                          background: "var(--bg-primary)",
-                          border: "1px solid var(--glass-border)",
-                          color: "var(--text-primary)",
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          outline: "none",
-                          fontSize: "0.8rem",
-                          cursor: "pointer",
-                          fontWeight: "bold"
-                        }}
-                      >
-                        <option value="">-- Select Target Location --</option>
-                        {locations.map((loc) => (
-                          <option key={loc.id} value={loc.name}>
-                            {loc.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  <button 
-                    onClick={handleUpload} 
-                    className="glow-btn-cyan start-detect-btn"
-                    disabled={uploading}
-                    style={{ width: "100%", margin: 0 }}
-                  >
-                    {uploading ? "Running YOLOv8 Object Tracking..." : "Process Video feed"}
-                  </button>
-                  {error && <div className="demo-error-box" style={{ margin: 0 }}><AlertCircle size={16} />{error}</div>}
-                </div>
-              )}
-              <p className="playback-tip">
-                <AlertTriangle size={12} className="bullet-warn" /> 
-                {results ? "Play the video to watch the AI metrics synchronize frame-by-frame." : "Click 'Process Video feed' to run the AI detection models on this video."}
-              </p>
+              <p className="playback-tip"><AlertTriangle size={12} className="bullet-warn" /> Play the video to watch the AI metrics synchronize frame-by-frame.</p>
             </div>
           )}
         </div>
