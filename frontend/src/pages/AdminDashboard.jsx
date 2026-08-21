@@ -49,6 +49,17 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   const token = sessionStorage.getItem("token");
   const assignedLocation = sessionStorage.getItem("assigned_location");
 
+  const selectedLocRef = React.useRef(selectedLoc);
+  const selectedLocationRef = React.useRef(selectedLocation);
+
+  useEffect(() => {
+    selectedLocRef.current = selectedLoc;
+  }, [selectedLoc]);
+
+  useEffect(() => {
+    selectedLocationRef.current = selectedLocation;
+  }, [selectedLocation]);
+
   useEffect(() => {
     fetchAdminStatus();
     fetchLocations();
@@ -67,7 +78,7 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
   useEffect(() => {
     if (selectedLocation && locations.length > 0) {
       const matched = locations.find(l => matchLocationNames(l.name, selectedLocation));
-      if (matched && matched.name !== selectedLoc?.name) {
+      if (matched && matched.name !== selectedLocRef.current?.name) {
         handleSelectLocation(matched);
       }
     }
@@ -165,7 +176,6 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
       console.error("Error fetching admin status:", err);
     }
   };
-
   const fetchLocations = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
@@ -175,17 +185,17 @@ export default function AdminDashboard({ selectedLocation, setSelectedLocation }
 
       // Handle location selection
       if (data.length > 0) {
-        const targetName = selectedLocation || assignedLocation || data[0].name;
+        const targetName = selectedLocationRef.current || assignedLocation || data[0].name;
         const currentLoc = data.find(l => matchLocationNames(l.name, targetName)) || data[0];
         
         // Always update selected node telemetry info
         setSelectedLoc(currentLoc);
-        if (setSelectedLocation && !selectedLocation) {
+        if (setSelectedLocation && !selectedLocationRef.current) {
           setSelectedLocation(currentLoc.name);
         }
 
         // Only overwrite form inputs (sliders/override status) on manual select or first load
-        if (!isBackground || !selectedLoc) {
+        if (!isBackground || !selectedLocRef.current) {
           setManualOverride(currentLoc.manual_override);
           setTrafficStatus(currentLoc.traffic_status);
           setRedTime(currentLoc.red_time);

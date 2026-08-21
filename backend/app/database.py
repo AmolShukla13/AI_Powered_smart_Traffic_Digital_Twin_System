@@ -215,7 +215,7 @@ def _seed_database_internal():
             "password": hash_password("admin123"),
             "email": "admin@traffic.gov.in",
             "role": "admin",
-            "assigned_location": "Connaught Place Crossing"
+            "assigned_location": "Sitapur Junction"
         }
         normal_user = {
             "username": "user",

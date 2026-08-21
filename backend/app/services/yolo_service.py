@@ -287,3 +287,14 @@ class YoloService:
 
 yolo_service = YoloService()
 
+def get_traffic_status_from_density(density: float) -> str:
+    if density < 30.0:
+        return "Low"
+    elif density < 60.0:
+        return "Medium"
+    elif density < 85.0:
+        return "Heavy"
+    else:
+        return "Gridlock"
+
+
