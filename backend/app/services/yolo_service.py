@@ -73,7 +73,7 @@ class YoloService:
         if total_frames <= 0:
             total_frames = 300  # Assume 12 seconds at 25fps as fallback
         duration = total_frames / fps
-        max_inference_frames = 2
+        max_inference_frames = 4
         if total_frames <= max_inference_frames:
             sampled_indices = list(range(total_frames))
         else:
@@ -114,7 +114,7 @@ class YoloService:
                 # Run actual YOLO detection
                 try:
                     h, w = frame.shape[:2]
-                    results = self.model(frame, imgsz=320, verbose=False)
+                    results = self.model(frame, imgsz=640, verbose=False)
                     frame_vehicles = {"car": 0, "bus": 0, "truck": 0, "motorcycle": 0, "bicycle": 0}
                     
                     # Process bounding boxes
