@@ -207,8 +207,43 @@ export async function seedDatabase() {
     }
     console.log("Database default locations synchronized successfully.");
 
-    // 3. Seed default users (Disabled for a clean slate)
-    console.log("Database user seeding skipped for clean slate.");
+    // 3. Always seed core users to prevent data loss on server restarts/mock database fallbacks
+    try {
+      const amolPwd = await hashPassword("123456");
+      await db.collection("users").updateOne(
+        { username: "Amol" },
+        {
+          $setOnInsert: {
+            email: "amol@gmail.com",
+            role: "admin",
+            assigned_location: "Sitapur Junction"
+          },
+          $set: {
+            password: amolPwd
+          }
+        },
+        { upsert: true }
+      );
+
+      const adminPwd = await hashPassword("admin123");
+      await db.collection("users").updateOne(
+        { username: "admin" },
+        {
+          $setOnInsert: {
+            email: "admin@traffic.gov.in",
+            role: "admin",
+            assigned_location: "Sitapur Junction"
+          },
+          $set: {
+            password: adminPwd
+          }
+        },
+        { upsert: true }
+      );
+      console.log("Successfully synchronized core database users ('Amol' and 'admin').");
+    } catch (userSeedErr) {
+      console.error("Failed to seed core users:", userSeedErr);
+    }
 
     // 4. Seed default E-Challans (Disabled for a clean slate)
     console.log("Database challan seeding skipped for clean slate.");
