@@ -17,8 +17,8 @@ export let isMockDatabase = true;
 if (mongoUri) {
   try {
     client = new MongoClient(mongoUri, {
-      serverSelectionTimeoutMS: 3000,
-      connectTimeoutMS: 3000
+      serverSelectionTimeoutMS: 30000,
+      connectTimeoutMS: 30000
     });
     db = client.db();
   } catch (err) {
@@ -47,7 +47,7 @@ export async function seedDatabase() {
   try {
     if (client) {
       const pingPromise = client.db("admin").command({ ping: 1 });
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out")), 2000));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out")), 15000));
       await Promise.race([pingPromise, timeoutPromise]);
       console.log("Successfully connected to MongoDB Atlas!");
       isMockDatabase = false;
