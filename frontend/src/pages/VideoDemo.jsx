@@ -775,7 +775,7 @@ export default function VideoDemo({
                                 whiteSpace: "nowrap",
                                 textTransform: "uppercase"
                               }}>
-                                {det.class} {Math.round(det.confidence * 100)}%
+                                {det.class}
                               </span>
                             </div>
                           );

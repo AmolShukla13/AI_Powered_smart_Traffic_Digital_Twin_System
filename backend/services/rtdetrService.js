@@ -105,7 +105,7 @@ class RtDetrService {
       for (let i = 0; i < buses; i++) {
         const x = (timestamp * 0.05 + 0.15) % 1.4 - 0.35;
         if (x >= 0 && x <= 1.0) {
-          const y = 0.32;
+          const y = 0.62; // Placed on the road instead of the trees
           const wBox = 0.16;
           const hBox = 0.11;
           detections.push({
@@ -120,7 +120,7 @@ class RtDetrService {
       for (let i = 0; i < trucks; i++) {
         const x = 1.25 - ((timestamp * 0.045 + 0.5) % 1.5);
         if (x >= 0 && x <= 1.0) {
-          const y = 0.35;
+          const y = 0.52; // Placed on the road instead of the metro structure
           const wBox = 0.15;
           const hBox = 0.13;
           detections.push({
