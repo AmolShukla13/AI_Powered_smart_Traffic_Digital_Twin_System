@@ -73,7 +73,7 @@ class RtDetrService {
       for (let i = 0; i < cars; i++) {
         const offset = i * 0.25;
         const x = (timestamp * 0.08 + offset) % 1.2 - 0.2;
-        if (x >= 0 && x <= 1.0) {
+        if (x >= 0.35 && x <= 0.95) {
           const y = 0.45 + (i * 0.02) % 0.1;
           const wBox = 0.08 + (i * 0.01) % 0.04;
           const hBox = wBox * 0.75;
@@ -89,7 +89,7 @@ class RtDetrService {
       for (let i = 0; i < motorcycles; i++) {
         const offset = i * 0.2;
         const x = 1.1 - ((timestamp * 0.12 + offset) % 1.3);
-        if (x >= 0 && x <= 1.0) {
+        if (x >= 0.35 && x <= 0.95) {
           const y = 0.6 + (i * 0.03) % 0.1;
           const wBox = 0.04;
           const hBox = 0.06;
@@ -104,7 +104,7 @@ class RtDetrService {
       // Buses
       for (let i = 0; i < buses; i++) {
         const x = (timestamp * 0.05 + 0.15) % 1.4 - 0.35;
-        if (x >= 0 && x <= 1.0) {
+        if (x >= 0.35 && x <= 0.95) {
           const y = 0.62; // Placed on the road instead of the trees
           const wBox = 0.16;
           const hBox = 0.11;
@@ -119,7 +119,7 @@ class RtDetrService {
       // Trucks
       for (let i = 0; i < trucks; i++) {
         const x = 1.25 - ((timestamp * 0.045 + 0.5) % 1.5);
-        if (x >= 0 && x <= 1.0) {
+        if (x >= 0.35 && x <= 0.95) {
           const y = 0.52; // Placed on the road instead of the metro structure
           const wBox = 0.15;
           const hBox = 0.13;
