@@ -69,70 +69,70 @@ class RtDetrService {
 
     const detections = [];
 
-    // Lane 1: Cars (Right lane - moving away, x increasing, y decreasing)
-    for (let i = 0; i < cars; i++) {
-      const offset = i * 0.25;
-      const x = (timestamp * 0.08 + offset) % 1.2 - 0.2;
-      const scale = 0.9 - x * 0.7; // Larger when x is smaller (closer)
-      const y = 0.90 - x * 0.5 + (i * 0.02) % 0.05;
-      if (x >= 0.25 && x <= 0.95 && !(x < 0.35 && y < 0.50)) {
-        const wBox = Math.max(0.04, (0.07 + (i * 0.01) % 0.02) * scale);
-        const hBox = wBox * 0.75;
-        detections.push({
-          class: "car",
-          bbox: [x, y, Math.min(1.0, x + wBox), Math.min(1.0, y + hBox)],
-          confidence: Number((0.78 + 0.18 * Math.sin(timestamp + i)).toFixed(2))
-        });
-      }
-    }
+    // 1. Buses (White mini-bus on the left, Orange bus on the right)
+    if (buses > 0) {
+      // White mini-bus on the left (foreground, large box)
+      const x1 = 0.08 + 0.02 * Math.sin(timestamp * 0.3);
+      detections.push({
+        class: "bus",
+        bbox: [x1, 0.66, x1 + 0.19, 0.86],
+        confidence: 0.94
+      });
 
-    // Lane 2: Motorcycles (Left lane - moving towards, x decreasing, y increasing)
-    for (let i = 0; i < motorcycles; i++) {
-      const offset = i * 0.2;
-      const x = 1.1 - ((timestamp * 0.12 + offset) % 1.3);
-      const scale = 0.2 + (1.0 - x) * 0.8; // Larger when x is smaller (closer)
-      const y = 0.85 - x * 0.7 + (i * 0.02) % 0.05;
-      if (x >= 0.05 && x <= 0.8 && !(x < 0.35 && y < 0.50)) {
-        const wBox = Math.max(0.02, 0.03 * scale);
-        const hBox = 0.05 * scale;
-        detections.push({
-          class: "motorcycle",
-          bbox: [x, y, Math.min(1.0, x + wBox), Math.min(1.0, y + hBox)],
-          confidence: Number((0.7 + 0.23 * Math.cos(timestamp - i)).toFixed(2))
-        });
-      }
-    }
-
-    // Buses (Left lane - moving towards, x decreasing, y increasing)
-    for (let i = 0; i < buses; i++) {
-      const x = 1.0 - ((timestamp * 0.05 + 0.15) % 1.2);
-      const scale = 0.2 + (1.0 - x) * 0.8;
-      const y = 0.80 - x * 0.7;
-      if (x >= 0.05 && x <= 0.8 && !(x < 0.35 && y < 0.50)) {
-        const wBox = Math.max(0.06, 0.11 * scale);
-        const hBox = 0.08 * scale;
+      // Orange bus on the right (midground, medium-large box)
+      if (buses > 1 || Math.sin(timestamp) > 0) {
+        const x2 = 0.65 + 0.015 * Math.cos(timestamp * 0.4);
         detections.push({
           class: "bus",
-          bbox: [x, y, Math.min(1.0, x + wBox), Math.min(1.0, y + hBox)],
-          confidence: 0.88
+          bbox: [x2, 0.47, x2 + 0.15, 0.63],
+          confidence: 0.91
         });
       }
     }
 
-    // Trucks (Right lane - moving away, x increasing, y decreasing)
+    // 2. Autos (Represented as class: "truck", rendered as "AUTO" in frontend)
     for (let i = 0; i < trucks; i++) {
-      const x = (timestamp * 0.045 + 0.2) % 0.8 + 0.15;
-      const scale = 0.9 - x * 0.7;
-      const y = 0.88 - x * 0.5;
-      if (x >= 0.25 && x <= 0.95 && !(x < 0.35 && y < 0.50)) {
-        const wBox = Math.max(0.05, 0.10 * scale);
-        const hBox = 0.09 * scale;
-        detections.push({
-          class: "truck",
-          bbox: [x, y, Math.min(1.0, x + wBox), Math.min(1.0, y + hBox)],
-          confidence: 0.82
-        });
-      }
+      const offset = i * 0.15;
+      const x = 0.45 + ((timestamp * 0.04 + offset) % 0.22);
+      const scale = 0.6 + x * 0.5;
+      const y = 0.52 + (x - 0.45) * 0.8 + (i * 0.02) % 0.04;
+      const wBox = 0.07 * scale;
+      const hBox = wBox * 0.85;
+      detections.push({
+        class: "truck", // Will be rendered as "AUTO" in frontend
+        bbox: [x, y, x + wBox, y + hBox],
+        confidence: 0.85
+      });
+    }
+
+    // 3. Cars (Right lane - moving away, x increasing, y decreasing/increasing along lane)
+    for (let i = 0; i < cars; i++) {
+      const offset = i * 0.2;
+      const x = 0.35 + ((timestamp * 0.05 + offset) % 0.3);
+      const scale = 0.5 + x * 0.7;
+      const y = 0.48 + (x - 0.35) * 0.5 + (i * 0.01) % 0.03;
+      const wBox = (0.06 + (i * 0.01) % 0.02) * scale;
+      const hBox = wBox * 0.72;
+      detections.push({
+        class: "car",
+        bbox: [x, y, x + wBox, y + hBox],
+        confidence: Number((0.80 + 0.15 * Math.sin(timestamp + i)).toFixed(2))
+      });
+    }
+
+    // 4. Motorcycles
+    for (let i = 0; i < motorcycles; i++) {
+      const offset = i * 0.18;
+      const x = 0.28 + ((timestamp * 0.07 + offset) % 0.25);
+      const scale = 0.4 + x * 0.8;
+      const y = 0.56 + (x - 0.28) * 0.6;
+      const wBox = 0.035 * scale;
+      const hBox = 0.05 * scale;
+      detections.push({
+        class: "motorcycle",
+        bbox: [x, y, x + wBox, y + hBox],
+        confidence: Number((0.75 + 0.20 * Math.cos(timestamp - i)).toFixed(2))
+      });
     }
 
       processedFrames.push({

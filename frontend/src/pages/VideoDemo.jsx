@@ -775,7 +775,7 @@ export default function VideoDemo({
                                 whiteSpace: "nowrap",
                                 textTransform: "uppercase"
                               }}>
-                                {det.class}
+                                {det.class === "truck" ? "auto" : det.class}
                               </span>
                             </div>
                           );
@@ -913,7 +913,7 @@ export default function VideoDemo({
                     <div key={vehicle} className="rtdetr-veh-item">
                       <Car size={16} className="veh-icon" />
                       <div className="veh-details">
-                        <span className="veh-name">{vehicle.toUpperCase()}</span>
+                        <span className="veh-name">{vehicle === "truck" ? "AUTO" : vehicle.toUpperCase()}</span>
                         <span className="veh-count font-mono">{count}</span>
                       </div>
                     </div>
