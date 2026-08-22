@@ -316,10 +316,9 @@ router.get("/calculate-route", async (req, res) => {
   }
 });
 
-// Asynchronous background task simulation
-async function processVideoTask(jobId, filepath, locationName) {
+async function processVideoTask(jobId, filepath, locationName, clientDuration) {
   try {
-    const results = rtdetrService.processVideo(filepath);
+    const results = rtdetrService.processVideo(filepath, clientDuration);
 
     if (fs.existsSync(filepath)) {
       fs.unlinkSync(filepath);
@@ -413,8 +412,10 @@ router.post("/upload-demo", upload.single("file"), async (req, res) => {
     return res.status(400).json({ detail: "Upload file is required." });
   }
 
-  const { location_name } = req.query;
+  const { location_name, duration } = req.query;
   const ext = req.file.originalname.split(".").pop().toLowerCase();
+  
+  const clientDuration = duration ? parseFloat(duration) : null;
 
   if (!["mp4", "avi", "mov", "mkv"].includes(ext)) {
     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
@@ -437,7 +438,7 @@ router.post("/upload-demo", upload.single("file"), async (req, res) => {
     });
 
     // Run processing task asynchronously in background
-    processVideoTask(jobId, req.file.path, location_name);
+    processVideoTask(jobId, req.file.path, location_name, clientDuration);
 
     res.json({ job_id: jobId, status: "processing" });
   } catch (err) {

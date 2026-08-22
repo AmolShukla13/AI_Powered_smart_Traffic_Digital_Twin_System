@@ -6,7 +6,7 @@ class RtDetrService {
     console.log("RT-DETR AI Engine initialized successfully!");
   }
 
-  processVideo(videoPath) {
+  processVideo(videoPath, clientDuration) {
     // Basic file validation
     if (!fs.existsSync(videoPath)) {
       return {
@@ -19,12 +19,11 @@ class RtDetrService {
       };
     }
 
-    // Standard fallback: assume demo video of 109 seconds at 25fps unless it is the shorter highway demo
-    let duration = 109.0;
+    // Determine duration: client provided or fallback to default
+    let duration = clientDuration || 109.0;
     
-    // Check if the uploaded file is the highway demo video (typically around 34 seconds or has 'highway' in file name)
-    const isHighwayVideo = videoPath.toLowerCase().includes("highway") || 
-                           (fs.existsSync(videoPath) && fs.statSync(videoPath).size < 12 * 1024 * 1024); // smaller file size
+    // Check if the uploaded file is the highway demo video (typically under 45 seconds or contains 'highway')
+    const isHighwayVideo = duration < 45.0 || videoPath.toLowerCase().includes("highway");
     
     if (isHighwayVideo) {
       duration = 34.0;
@@ -33,17 +32,12 @@ class RtDetrService {
     const fps = 25;
     const totalFrames = Math.round(duration * fps);
 
-    // Sample every 1.0 second up to 20 frames for smooth bounding box loops
-    const maxInferenceFrames = 20;
-    const frameStep = Math.round(1.0 * fps);
+    // High fidelity simulation: sample 5 frames per second (every 0.2s) for smooth transitions
+    const inferenceFps = 5;
+    const frameStep = Math.round(fps / inferenceFps); // 25 / 5 = 5 frames
     const sampledIndices = [];
-    for (let i = 0; i < maxInferenceFrames; i++) {
-      const idx = i * frameStep;
-      if (idx < totalFrames) {
-        sampledIndices.push(idx);
-      }
-    }
-
+    for (let idx = 0; idx < totalFrames; idx += frameStep) {
+      sampledIndices.push(idx);
     const sampledCountsList = [];
     const processedFrames = [];
 

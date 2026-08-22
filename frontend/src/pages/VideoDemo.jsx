@@ -51,6 +51,16 @@ const generateMockStreamResults = () => {
     duration,
     detection_method: "RT-DETR RTSP STREAM"
   };
+const getVideoDuration = (file) => {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      resolve(video.duration);
+    };
+    video.src = URL.createObjectURL(file);
+  });
 };
 
 export default function VideoDemo({
@@ -254,9 +264,10 @@ export default function VideoDemo({
     const uploadTimeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout for upload start
 
     try {
+      const fileDuration = await getVideoDuration(videoFile);
       const url = selectedLocation
-        ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}`
-        : `${API_BASE_URL}/traffic/upload-demo`;
+        ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}&duration=${fileDuration}`
+        : `${API_BASE_URL}/traffic/upload-demo?duration=${fileDuration}`;
         
       const response = await fetch(url, {
         method: "POST",
