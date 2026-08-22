@@ -58,11 +58,6 @@ export async function seedDatabase() {
   }
 
   try {
-    // ONE-TIME CLEAN WIPE: Clear users and challans
-    await db.collection("users").deleteMany({});
-    await db.collection("challans").deleteMany({});
-    console.log("TEMPORARY DATABASE WIPE COMPLETE: Users and Challans collections have been cleared!");
-
     // 1. Rename any existing "Sitapur" location or user assignment
     await db.collection("locations").updateMany(
       { name: "Sitapur" },
