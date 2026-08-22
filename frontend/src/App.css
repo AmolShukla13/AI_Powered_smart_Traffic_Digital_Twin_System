@@ -4,13 +4,39 @@
   flex-direction: column;
 }
 
-.main-content {
+.main-layout {
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+.main-content {
+  padding: 20px;
+  flex-grow: 1;
+  overflow-y: auto;
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 10px;
   box-sizing: border-box;
+}
+
+.public-main-content {
+  padding: 0;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .main-layout {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* Common list modifications */

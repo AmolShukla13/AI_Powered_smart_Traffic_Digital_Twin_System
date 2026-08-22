@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Activity, Shield, Video, AlertTriangle, LogOut, User, ActivitySquare, HeartPulse, FileText, BarChart3, Camera, MapPin, Receipt, TrafficCone } from "lucide-react";
 import "./Sidebar.css";
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -13,6 +13,11 @@ export default function Sidebar() {
   const username = sessionStorage.getItem("username");
   const role = sessionStorage.getItem("role");
   const assignedLocation = sessionStorage.getItem("assigned_location");
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    if (onClose) onClose();
+  };
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");
@@ -24,6 +29,7 @@ export default function Sidebar() {
     localStorage.removeItem("username");
     localStorage.removeItem("assigned_location");
     navigate("/login", { state: { message: "Logged out successfully." } });
+    if (onClose) onClose();
   };
 
   const isActive = (path) => {
@@ -32,9 +38,9 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="sidebar glass-panel">
+      <aside className={`sidebar glass-panel ${isOpen ? "open" : ""}`}>
       {/* Brand Header */}
-      <div className="sidebar-brand" onClick={() => navigate("/")}>
+      <div className="sidebar-brand" onClick={() => handleNavigate("/")}>
         <Activity className="brand-logo text-glow-cyan" />
         <div className="brand-meta">
           <span className="brand-title">
@@ -46,57 +52,57 @@ export default function Sidebar() {
 
       {/* Navigation List */}
       <nav className="sidebar-nav">
-        <button onClick={() => navigate("/")} className={`nav-link-btn ${isActive("/")}`}>
+        <button onClick={() => handleNavigate("/")} className={`nav-link-btn ${isActive("/")}`}>
           <ActivitySquare size={20} />
           <span>Topology Portal</span>
         </button>
 
         {token && role === "admin" && (
-          <button onClick={() => navigate("/admin")} className={`nav-link-btn ${isActive("/admin")}`}>
+          <button onClick={() => handleNavigate("/admin")} className={`nav-link-btn ${isActive("/admin")}`}>
             <Shield size={20} />
             <span>Admin Control</span>
           </button>
         )}
 
         {token && role === "admin" && (
-          <button onClick={() => navigate("/video-demo")} className={`nav-link-btn ${isActive("/video-demo")}`}>
+          <button onClick={() => handleNavigate("/video-demo")} className={`nav-link-btn ${isActive("/video-demo")}`}>
             <Video size={20} />
             <span>AI Video Analytics</span>
           </button>
         )}
 
-        <button onClick={() => navigate("/challans")} className={`nav-link-btn ${isActive("/challans")}`}>
+        <button onClick={() => handleNavigate("/challans")} className={`nav-link-btn ${isActive("/challans")}`}>
           <Receipt size={20} />
           <span>E-Challan Registry</span>
         </button>
 
-        <button onClick={() => navigate("/accident-reports")} className={`nav-link-btn ${isActive("/accident-reports")}`}>
+        <button onClick={() => handleNavigate("/accident-reports")} className={`nav-link-btn ${isActive("/accident-reports")}`}>
           <AlertTriangle size={20} />
           <span>Risk Analytics</span>
         </button>
 
-        <button onClick={() => navigate("/diagnostics")} className={`nav-link-btn ${isActive("/diagnostics")}`}>
+        <button onClick={() => handleNavigate("/diagnostics")} className={`nav-link-btn ${isActive("/diagnostics")}`}>
           <HeartPulse size={20} />
           <span>System Diagnostics</span>
         </button>
 
-        <button onClick={() => navigate("/emergencies")} className={`nav-link-btn ${isActive("/emergencies")}`}>
+        <button onClick={() => handleNavigate("/emergencies")} className={`nav-link-btn ${isActive("/emergencies")}`}>
           <FileText size={20} />
           <span>Emergency Records</span>
         </button>
 
-        <button onClick={() => navigate("/analytics")} className={`nav-link-btn ${isActive("/analytics")}`}>
+        <button onClick={() => handleNavigate("/analytics")} className={`nav-link-btn ${isActive("/analytics")}`}>
           <BarChart3 size={20} />
           <span>AI Traffic Reports</span>
         </button>
 
-        <button onClick={() => navigate("/transit-alerts")} className={`nav-link-btn ${isActive("/transit-alerts")}`}>
+        <button onClick={() => handleNavigate("/transit-alerts")} className={`nav-link-btn ${isActive("/transit-alerts")}`}>
           <TrafficCone size={20} />
           <span>Signal & Transit Alerts</span>
         </button>
 
         {token && (
-          <button onClick={() => navigate("/profile")} className={`nav-link-btn ${isActive("/profile")}`}>
+          <button onClick={() => handleNavigate("/profile")} className={`nav-link-btn ${isActive("/profile")}`}>
             <User size={20} />
             <span>Profile & Settings</span>
           </button>

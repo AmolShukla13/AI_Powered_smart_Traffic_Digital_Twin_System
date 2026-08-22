@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AlertCircle, Activity, ShieldAlert, Cpu, Database } from "lucide-react";
+import { AlertCircle, Activity, ShieldAlert, Cpu, Database, Menu } from "lucide-react";
 import { API_BASE_URL } from "../services/api";
 import "./Topbar.css";
 
-export default function Topbar() {
+export default function Topbar({ onMenuClick }) {
   const location = useLocation();
   const [emergencies, setEmergencies] = useState([]);
   const [dbConnected, setDbConnected] = useState(true);

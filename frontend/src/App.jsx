@@ -24,6 +24,7 @@ function AppContent() {
   const navigate = useNavigate();
   const isLoginPage = location.pathname === "/login";
   const isPublicPage = isLoginPage || location.pathname.startsWith("/verify/");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Force login on app startup (if no token in sessionStorage, redirect to /login)
   useEffect(() => {
@@ -103,7 +104,7 @@ function AppContent() {
   // Periodically sync live detection data to the backend database (runs globally)
   useEffect(() => {
     if (!selectedLocation || !activeFrameStats) return;
-    if (!videoResults && !isCCTVConnected) return; // Only sync if video or CCTV is active
+    if (!videoResults && !isCCTVConnected && !videoUrl) return; // Only sync if video or CCTV is active
     
     const token = sessionStorage.getItem("token");
     if (!token) return;
@@ -149,26 +150,14 @@ function AppContent() {
       {/* Animated matrix dots in background */}
       <div className="traffic-bg-grid"></div>
       
-      {!isPublicPage && <Sidebar />}
+      {!isPublicPage && <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
       
       <div 
-        className={isPublicPage ? "login-layout-wrapper" : "main-layout"} 
-        style={
-          isPublicPage 
-            ? { display: "flex", flexDirection: "column", flexGrow: 1, minHeight: "100vh", width: "100%" }
-            : { display: "flex", flexDirection: "column", flexGrow: 1, marginLeft: "250px", width: "calc(100% - 250px)", minHeight: "100vh" }
-        }
+        className={isPublicPage ? "login-layout-wrapper" : `main-layout ${sidebarOpen ? "sidebar-open" : ""}`}
       >
-        {!isPublicPage && <Topbar />}
+        {!isPublicPage && <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />}
         
-        <main 
-          className="main-content" 
-          style={
-            isPublicPage 
-              ? { padding: "0", flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", maxWidth: "100%" }
-              : { padding: "20px", flexGrow: 1, overflowY: "auto" }
-          }
-        >
+        <main className={isPublicPage ? "public-main-content" : "main-content"}>
           <Routes>
             <Route path="/" element={<UserView />} />
             <Route path="/login" element={<Login />} />

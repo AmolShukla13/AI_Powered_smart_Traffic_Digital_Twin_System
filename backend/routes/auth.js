@@ -129,7 +129,7 @@ router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const user = await db.collection("users").findOne({ username });
+    const user = await db.collection("users").findOne({ username: new RegExp(`^${username}$`, "i") });
     if (!user) {
       return res.status(401).json({ detail: "Incorrect username or password" });
     }
