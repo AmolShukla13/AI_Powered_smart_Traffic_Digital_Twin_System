@@ -203,6 +203,120 @@ export default function VideoDemo({
     }
   }, [videoRef.current, videoUrl]);
 
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const modelRef = useRef(null);
+  const isDetectingRef = useRef(false);
+
+  useEffect(() => {
+    let tfScript = null;
+    let cocoScript = null;
+
+    const loadScripts = () => {
+      if (window.cocoSsd) {
+        initializeModel();
+        return;
+      }
+
+      tfScript = document.createElement("script");
+      tfScript.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs";
+      tfScript.async = true;
+      document.body.appendChild(tfScript);
+
+      tfScript.onload = () => {
+        cocoScript = document.createElement("script");
+        cocoScript.src = "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd";
+        cocoScript.async = true;
+        document.body.appendChild(cocoScript);
+
+        cocoScript.onload = () => {
+          initializeModel();
+        };
+      };
+    };
+
+    const initializeModel = async () => {
+      try {
+        console.log("Loading COCO-SSD Model...");
+        const loadedModel = await window.cocoSsd.load({ base: "lite" });
+        modelRef.current = loadedModel;
+        setModelLoaded(true);
+        console.log("COCO-SSD Model loaded successfully!");
+      } catch (err) {
+        console.error("Failed to load COCO-SSD model:", err);
+      }
+    };
+
+    loadScripts();
+
+    return () => {
+      // Keep loaded
+    };
+  }, []);
+
+  const detectFrame = async () => {
+    if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !modelRef.current) {
+      isDetectingRef.current = false;
+      return;
+    }
+
+    isDetectingRef.current = true;
+
+    try {
+      const predictions = await modelRef.current.detect(videoRef.current);
+      const trafficClasses = ["car", "bus", "truck", "motorcycle", "bicycle"];
+      
+      const videoWidth = videoRef.current.videoWidth || videoRef.current.clientWidth || 640;
+      const videoHeight = videoRef.current.videoHeight || videoRef.current.clientHeight || 480;
+      
+      const detections = predictions
+        .filter(p => trafficClasses.includes(p.class) && p.score > 0.35)
+        .map(p => {
+          const [x, y, w, h] = p.bbox;
+          const x1 = Math.max(0.0, x / videoWidth);
+          const y1 = Math.max(0.0, y / videoHeight);
+          const x2 = Math.min(1.0, (x + w) / videoWidth);
+          const y2 = Math.min(1.0, (y + h) / videoHeight);
+          
+          return {
+            class: p.class === "truck" ? "auto" : p.class,
+            bbox: [x1, y1, x2, y2],
+            confidence: p.score
+          };
+        });
+
+      const counts = { car: 0, bus: 0, auto: 0, motorcycle: 0, bicycle: 0 };
+      detections.forEach(d => {
+        counts[d.class]++;
+      });
+
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      const density = Math.min(100.0, (total / 15.0) * 100.0);
+      const getStatusFromDensity = (d) => d < 30.0 ? "Low" : d < 60.0 ? "Medium" : d < 85.0 ? "Heavy" : "Gridlock";
+      
+      setActiveFrameStats({
+        timestamp: videoRef.current.currentTime,
+        detections,
+        density,
+        traffic_status: getStatusFromDensity(density),
+        vehicle_counts: counts
+      });
+    } catch (err) {
+      console.error("Frame detection error:", err);
+    }
+
+    if (!videoRef.current.paused && !videoRef.current.ended) {
+      requestAnimationFrame(detectFrame);
+    } else {
+      isDetectingRef.current = false;
+    }
+  };
+
+  const handlePlay = () => {
+    if (modelRef.current && !isDetectingRef.current) {
+      requestAnimationFrame(detectFrame);
+    }
+  };
+
   const handleFileChange = (e) => {
     setError("");
     const file = e.target.files[0];
@@ -389,6 +503,8 @@ export default function VideoDemo({
     if (!videoRef.current || !results || !results.processed_frames) return;
     const currentTime = videoRef.current.currentTime;
     setPlaybackTime(currentTime);
+
+    if (modelRef.current) return;
 
     // Find closest frame to current playback time (with wrap-around loop)
     const frames = results.processed_frames;
@@ -736,6 +852,7 @@ export default function VideoDemo({
                       src={videoUrl}
                       controls
                       loop
+                      onPlay={handlePlay}
                       onTimeUpdate={handleTimeUpdate}
                       className="demo-video-player"
                       style={{ width: "100%", display: "block" }}
@@ -745,10 +862,10 @@ export default function VideoDemo({
                     {activeFrameStats && (
                       <div className="bounding-boxes-overlay-container" style={{
                         position: "absolute",
-                        top: "10px",
-                        left: "10px",
-                        right: "10px",
-                        bottom: "10px",
+                        top: "0px",
+                        left: "0px",
+                        right: "0px",
+                        bottom: "0px",
                         pointerEvents: "none",
                         overflow: "hidden",
                         borderRadius: "8px"
@@ -899,7 +1016,7 @@ export default function VideoDemo({
             <div className="analytics-output glass-panel">
               <div className="output-header border-bottom">
                 <h3>RT-DETR DETECTOR TELEMETRY</h3>
-                <span className="engine-badge font-mono">{results.detection_method}</span>
+                <span className="engine-badge font-mono">{modelLoaded ? "Real-Time Browser AI Engine" : results.detection_method}</span>
               </div>
 
               {/* Dynamic playback statistics */}
