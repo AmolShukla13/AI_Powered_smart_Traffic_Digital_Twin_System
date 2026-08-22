@@ -344,13 +344,13 @@ async function processVideoTask(jobId, filepath, locationName) {
 
         const cars = results.vehicle_counts.car || 0;
         const buses = results.vehicle_counts.bus || 0;
-        const trucks = results.vehicle_counts.truck || 0;
+        const autos = results.vehicle_counts.auto || 0;
         const motorcycles = results.vehicle_counts.motorcycle || 0;
         const bicycles = results.vehicle_counts.bicycle || 0;
-        const totalVehicles = cars + buses + trucks + motorcycles + bicycles;
+        const totalVehicles = cars + buses + autos + motorcycles + bicycles;
 
         const density = results.density;
-        const co2Saved = (cars * 5.8) + ((buses + trucks) * 29.2) + (motorcycles * 2.5);
+        const co2Saved = (cars * 5.8) + (buses * 29.2) + (autos * 4.5) + (motorcycles * 2.5);
         const timeSaved = Number((density * 0.25).toFixed(1));
 
         let rec = "Traffic is flowing smoothly. Maintain AI autonomous mode.";
@@ -610,7 +610,7 @@ router.get("/reports", async (req, res) => {
     let totalDensity = 0.0;
     let totalTimeSaved = 0.0;
     let totalCo2 = 0.0;
-    const vehicleClasses = { car: 0, bus: 0, truck: 0, motorcycle: 0, bicycle: 0 };
+    const vehicleClasses = { car: 0, bus: 0, auto: 0, motorcycle: 0, bicycle: 0 };
 
     for (const r of reports) {
       totalVehicles += r.total_vehicles || 0;
@@ -646,7 +646,7 @@ router.get("/reports", async (req, res) => {
       hourly_profile: [
         Math.round(vehicleClasses.car / count),
         Math.round(vehicleClasses.bus / count),
-        Math.round(vehicleClasses.truck / count),
+        Math.round(vehicleClasses.auto / count),
         Math.round(vehicleClasses.motorcycle / count),
         Math.round(vehicleClasses.bicycle / count)
       ],

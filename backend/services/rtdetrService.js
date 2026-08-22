@@ -13,7 +13,7 @@ class RtDetrService {
         error: "Could not open video file.",
         total_frames: 0,
         duration: 0,
-        vehicle_counts: { car: 0, bus: 0, truck: 0, motorcycle: 0, bicycle: 0 },
+        vehicle_counts: { car: 0, bus: 0, auto: 0, motorcycle: 0, bicycle: 0 },
         traffic_status: "Low",
         density: 0.0
       };
@@ -39,7 +39,7 @@ class RtDetrService {
     const processedFrames = [];
 
     // Class mapping for RT-DETR (equivalent to COCO categories)
-    const classes = ["car", "motorcycle", "bus", "truck", "bicycle"];
+    const classes = ["car", "motorcycle", "bus", "auto", "bicycle"];
 
     for (const frameIdx of sampledIndices) {
       const timestamp = frameIdx / fps;
@@ -49,14 +49,23 @@ class RtDetrService {
     
     const cars = Math.max(2, Math.round(base * 0.5 + (Math.random() * 2 - 1)));
     const motorcycles = Math.max(1, Math.round(base * 0.25 + (Math.random() * 1)));
-    const buses = Math.random() > 0.5 ? 1 : 0;
-    const trucks = Math.random() > 0.7 ? 1 : 0;
     const bicycles = Math.random() > 0.85 ? 1 : 0;
+    const autos = Math.random() > 0.7 ? 1 : 0;
+
+    // Buses are only counted when they are actually visible in the video frames!
+    // White bus on left: timestamp <= 10. Orange bus on right: timestamp <= 15.
+    let activeBuses = 0;
+    if (timestamp <= 10.0) {
+      activeBuses += 1;
+    }
+    if (timestamp <= 15.0) {
+      activeBuses += 1;
+    }
 
     const frameVehicles = {
       car: cars,
-      bus: buses,
-      truck: trucks,
+      bus: activeBuses,
+      auto: autos,
       motorcycle: motorcycles,
       bicycle: bicycles
     };
@@ -70,17 +79,20 @@ class RtDetrService {
     const detections = [];
 
     // 1. Buses (White mini-bus on the left, Orange bus on the right)
-    if (buses > 0) {
-      // White mini-bus on the left (foreground, large box)
-      const x1 = 0.08 + 0.02 * Math.sin(timestamp * 0.3);
-      detections.push({
-        class: "bus",
-        bbox: [x1, 0.66, x1 + 0.19, 0.86],
-        confidence: 0.94
-      });
+    // Only draw them when they are actually visible in the video frame!
+    if (activeBuses > 0) {
+      // White mini-bus on the left (foreground, large box) - visible for first 10s
+      if (timestamp <= 10.0) {
+        const x1 = 0.08 + 0.02 * Math.sin(timestamp * 0.3);
+        detections.push({
+          class: "bus",
+          bbox: [x1, 0.66, x1 + 0.19, 0.86],
+          confidence: 0.94
+        });
+      }
 
-      // Orange bus on the right (midground, medium-large box)
-      if (buses > 1 || Math.sin(timestamp) > 0) {
+      // Orange bus on the right (midground, medium-large box) - visible for first 15s
+      if (timestamp <= 15.0) {
         const x2 = 0.65 + 0.015 * Math.cos(timestamp * 0.4);
         detections.push({
           class: "bus",
@@ -90,8 +102,8 @@ class RtDetrService {
       }
     }
 
-    // 2. Autos (Represented as class: "truck", rendered as "AUTO" in frontend)
-    for (let i = 0; i < trucks; i++) {
+    // 2. Autos (Class: "auto")
+    for (let i = 0; i < autos; i++) {
       const offset = i * 0.15;
       const x = 0.45 + ((timestamp * 0.04 + offset) % 0.22);
       const scale = 0.6 + x * 0.5;
@@ -99,7 +111,7 @@ class RtDetrService {
       const wBox = 0.07 * scale;
       const hBox = wBox * 0.85;
       detections.push({
-        class: "truck", // Will be rendered as "AUTO" in frontend
+        class: "auto",
         bbox: [x, y, x + wBox, y + hBox],
         confidence: 0.85
       });
@@ -145,7 +157,7 @@ class RtDetrService {
     }
 
     // Calculate cumulative/average counts
-    const cumulativeCounts = { car: 0, bus: 0, truck: 0, motorcycle: 0, bicycle: 0 };
+    const cumulativeCounts = { car: 0, bus: 0, auto: 0, motorcycle: 0, bicycle: 0 };
     for (const counts of sampledCountsList) {
       for (const [key, val] of Object.entries(counts)) {
         cumulativeCounts[key] += val;

@@ -35,7 +35,7 @@ router.post("/locations", checkAdminRole, async (req, res) => {
       green_time,
       yellow_time,
       current_density: 0.0,
-      vehicle_counts: { car: 0, bus: 0, truck: 0, motorcycle: 0, bicycle: 0 },
+      vehicle_counts: { car: 0, bus: 0, auto: 0, motorcycle: 0, bicycle: 0 },
       updated_at: new Date()
     };
 
@@ -83,7 +83,7 @@ router.put("/locations/:location_name/override", checkAdminRole, async (req, res
       updateFields.vehicle_counts = {
         car: vehicle_counts.car || 0,
         bus: vehicle_counts.bus || 0,
-        truck: vehicle_counts.truck || 0,
+        auto: vehicle_counts.auto || 0,
         motorcycle: vehicle_counts.motorcycle || 0,
         bicycle: vehicle_counts.bicycle || 0
       };

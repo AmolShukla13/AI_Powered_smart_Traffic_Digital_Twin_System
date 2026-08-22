@@ -128,7 +128,7 @@ function AppContent() {
               vehicle_counts: {
                 car: activeFrameStats.vehicle_counts?.car || 0,
                 bus: activeFrameStats.vehicle_counts?.bus || 0,
-                truck: activeFrameStats.vehicle_counts?.truck || 0,
+                auto: activeFrameStats.vehicle_counts?.auto || 0,
                 motorcycle: activeFrameStats.vehicle_counts?.motorcycle || 0,
                 bicycle: activeFrameStats.vehicle_counts?.bicycle || 0
               },
