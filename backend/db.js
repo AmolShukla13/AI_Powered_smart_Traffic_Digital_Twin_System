@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-const mongoUri = process.env.MONGODB_URI || "";
+const mongoUri = process.env.MONGODB_URI || "mongodb+srv://Amol:12345@cluster0.af7lwtq.mongodb.net/?appName=Cluster0";
 let client = null;
 export let db = null;
 export let isMockDatabase = true;
