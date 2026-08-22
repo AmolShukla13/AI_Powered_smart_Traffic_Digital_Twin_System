@@ -19,7 +19,7 @@ if (mongoUri) {
       serverSelectionTimeoutMS: 3000,
       connectTimeoutMS: 3000
     });
-    db = client.db("smart_traffic_twin");
+    db = client.db();
   } catch (err) {
     db = createMockDb();
   }
@@ -58,6 +58,11 @@ export async function seedDatabase() {
   }
 
   try {
+    // ONE-TIME CLEAN WIPE: Clear users and challans
+    await db.collection("users").deleteMany({});
+    await db.collection("challans").deleteMany({});
+    console.log("TEMPORARY DATABASE WIPE COMPLETE: Users and Challans collections have been cleared!");
+
     // 1. Rename any existing "Sitapur" location or user assignment
     await db.collection("locations").updateMany(
       { name: "Sitapur" },
@@ -207,71 +212,11 @@ export async function seedDatabase() {
     }
     console.log("Database default locations synchronized successfully.");
 
-    // 3. Seed default users
-    const usersCount = await db.collection("users").countDocuments({});
-    if (usersCount === 0) {
-      const adminPwd = await hashPassword("admin123");
-      const userPwd = await hashPassword("user123");
-      await db.collection("users").insertMany([
-        {
-          username: "admin",
-          password: adminPwd,
-          email: "admin@traffic.gov.in",
-          role: "admin",
-          assigned_location: "Sitapur Junction"
-        },
-        {
-          username: "user",
-          password: userPwd,
-          email: "user@gmail.com",
-          role: "user",
-          assigned_location: null
-        }
-      ]);
-      console.log("Seeded default users (admin/admin123, user/user123).");
-    }
+    // 3. Seed default users (Disabled for a clean slate)
+    console.log("Database user seeding skipped for clean slate.");
 
-    // 4. Seed default E-Challans
-    const challansCount = await db.collection("challans").countDocuments({});
-    if (challansCount === 0) {
-      const twoDaysAgo = new Date();
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-      const fiveDaysAgo = new Date();
-      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-      const fourteenHoursAgo = new Date();
-      fourteenHoursAgo.setHours(fourteenHoursAgo.getHours() - 14);
-
-      await db.collection("challans").insertMany([
-        {
-          challan_id: "CH-98124",
-          vehicle_number: "UP32-AB-8888",
-          location: "Sitapur Junction",
-          violation_type: "Overspeeding (74 km/h in 60 km/h zone)",
-          fine_amount: 1000,
-          status: "Unpaid",
-          timestamp: twoDaysAgo.toISOString().replace("T", " ").substring(0, 19)
-        },
-        {
-          challan_id: "CH-12495",
-          vehicle_number: "DL3C-XY-5555",
-          location: "Connaught Place Crossing",
-          violation_type: "Red Light Violation (AI Camera Skip)",
-          fine_amount: 2000,
-          status: "Paid",
-          timestamp: fiveDaysAgo.toISOString().replace("T", " ").substring(0, 19)
-        },
-        {
-          challan_id: "CH-87123",
-          vehicle_number: "UP32-AB-8888",
-          location: "Khairabad Crossing",
-          violation_type: "No Helmet (Two-Wheeler AI Cam)",
-          fine_amount: 500,
-          status: "Unpaid",
-          timestamp: fourteenHoursAgo.toISOString().replace("T", " ").substring(0, 19)
-        }
-      ]);
-      console.log("Seeded default E-Challans.");
-    }
+    // 4. Seed default E-Challans (Disabled for a clean slate)
+    console.log("Database challan seeding skipped for clean slate.");
   } catch (err) {
     console.error("Error seeding database:", err);
   }
