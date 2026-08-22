@@ -51,6 +51,8 @@ const generateMockStreamResults = () => {
     duration,
     detection_method: "RT-DETR RTSP STREAM"
   };
+};
+
 const getVideoDuration = (file) => {
   return new Promise((resolve) => {
     const video = document.createElement("video");
