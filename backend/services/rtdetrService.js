@@ -38,6 +38,7 @@ class RtDetrService {
     const sampledIndices = [];
     for (let idx = 0; idx < totalFrames; idx += frameStep) {
       sampledIndices.push(idx);
+    }
     const sampledCountsList = [];
     const processedFrames = [];
 
