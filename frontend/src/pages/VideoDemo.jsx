@@ -97,6 +97,7 @@ export default function VideoDemo({
   const abortControllerRef = useRef(null);
   const animFrameIdRef = useRef(null);
   const [densityHistory, setDensityHistory] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleReset = () => {
     if (animFrameIdRef.current) {
@@ -104,6 +105,7 @@ export default function VideoDemo({
       animFrameIdRef.current = null;
     }
     isDetectingRef.current = false;
+    setIsPlaying(false);
     setDensityHistory([]);
 
     abortControllerRef.current?.abort();
@@ -246,7 +248,7 @@ export default function VideoDemo({
     const initializeModel = async () => {
       try {
         console.log("Loading COCO-SSD Model...");
-        const loadedModel = await window.cocoSsd.load({ base: "lite" });
+        const loadedModel = await window.cocoSsd.load({ base: "lite_mobilenet_v2" });
         modelRef.current = loadedModel;
         setModelLoaded(true);
         console.log("COCO-SSD Model loaded successfully!");
@@ -265,6 +267,7 @@ export default function VideoDemo({
   const detectFrame = async () => {
     if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !modelRef.current) {
       isDetectingRef.current = false;
+      setIsPlaying(false);
       return;
     }
 
@@ -326,10 +329,12 @@ export default function VideoDemo({
       animFrameIdRef.current = requestAnimationFrame(detectFrame);
     } else {
       isDetectingRef.current = false;
+      setIsPlaying(false);
     }
   };
 
   const handlePlay = () => {
+    setIsPlaying(true);
     if (animFrameIdRef.current) {
       cancelAnimationFrame(animFrameIdRef.current);
       animFrameIdRef.current = null;
@@ -341,6 +346,7 @@ export default function VideoDemo({
   };
 
   const handlePause = () => {
+    setIsPlaying(false);
     if (animFrameIdRef.current) {
       cancelAnimationFrame(animFrameIdRef.current);
       animFrameIdRef.current = null;
@@ -349,6 +355,7 @@ export default function VideoDemo({
   };
 
   const handleEnded = () => {
+    setIsPlaying(false);
     if (animFrameIdRef.current) {
       cancelAnimationFrame(animFrameIdRef.current);
       animFrameIdRef.current = null;
@@ -365,6 +372,7 @@ export default function VideoDemo({
         animFrameIdRef.current = null;
       }
       isDetectingRef.current = false;
+      setIsPlaying(false);
       setDensityHistory([]);
       abortControllerRef.current?.abort();
       setVideoFile(file);
@@ -398,131 +406,8 @@ export default function VideoDemo({
       setResults(null);
       setActiveFrameStats(null);
       setDensityHistory([]);
+      setIsPlaying(false);
     }, 2000);
-  };
-
-  const handleUpload = async () => {
-    if (!videoFile) return;
-    setUploading(true);
-    setError("");
-
-    const formData = new FormData();
-    formData.append("file", videoFile);
-
-    if (videoFile.size > 50 * 1024 * 1024) {
-      setError("Payload Error: The selected video file exceeds the 50MB limit.");
-      setUploading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    const uploadTimeoutId = setTimeout(() => controller.abort(), 120000);
-
-    try {
-      const fileDuration = await getVideoDuration(videoFile);
-      const url = selectedLocation
-        ? `${API_BASE_URL}/traffic/upload-demo?location_name=${encodeURIComponent(selectedLocation)}&duration=${fileDuration}`
-        : `${API_BASE_URL}/traffic/upload-demo?duration=${fileDuration}`;
-        
-      const response = await fetch(url, {
-        method: "POST",
-        body: formData,
-        signal: controller.signal
-      });
-
-      clearTimeout(uploadTimeoutId);
-
-      let initialData;
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        initialData = await response.json();
-      } else {
-        const errorText = await response.text();
-        throw new Error(errorText || `Server returned response with status ${response.status}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(initialData?.detail || `Error uploading video file (Status ${response.status}).`);
-      }
-
-      const jobId = initialData.job_id;
-      if (!jobId) {
-        throw new Error("Invalid response from server: Job ID missing.");
-      }
-
-      let isCompleted = false;
-      let pollCount = 0;
-      const maxPolls = 120;
-      
-      while (!isCompleted) {
-        if (controller.signal.aborted) {
-          throw new Error("Aborted");
-        }
-
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(resolve, 1500);
-          controller.signal.addEventListener("abort", () => {
-            clearTimeout(timeout);
-            reject(new Error("Aborted"));
-          });
-        });
-
-        pollCount++;
-        if (pollCount > maxPolls) {
-          throw new Error("Processing Timeout: Video processing is taking longer than expected. Please try a shorter video.");
-        }
-
-        const pollRes = await fetch(`${API_BASE_URL}/traffic/jobs/${jobId}`, {
-          signal: controller.signal
-        });
-        
-        let jobData;
-        const pollContentType = pollRes.headers.get("content-type");
-        if (pollContentType && pollContentType.includes("application/json")) {
-          jobData = await pollRes.json();
-        } else {
-          const errorText = await pollRes.text();
-          throw new Error(errorText || `Status check returned response with status ${pollRes.status}`);
-        }
-
-        if (!pollRes.ok) {
-          throw new Error(jobData?.detail || `Error checking processing status (Status ${pollRes.status}).`);
-        }
-
-        if (jobData.status === "completed") {
-          isCompleted = true;
-          setResults(jobData.results);
-        } else if (jobData.status === "failed") {
-          throw new Error(jobData.error || "Video processing failed on backend server.");
-        }
-      }
-    } catch (err) {
-      if (err.message === "Aborted") {
-        return;
-      }
-      
-      let classifiedError = "Error processing video file.";
-      if (err.name === "AbortError") {
-        classifiedError = "Upload Timeout: The video upload request took longer than 15 seconds. Verify your internet connection.";
-      } else if (err.message === "Failed to fetch" || err.name === "TypeError") {
-        try {
-          const pingRes = await fetch(`${API_BASE_URL}/`, { method: "GET" });
-          if (pingRes.ok) {
-            classifiedError = "CORS Block / Network Rejection: Connection established, but the server blocked the request. Verify file formats or access permissions.";
-          } else {
-            classifiedError = `CORS Block / Upload Failure: Server rejected upload with status ${pingRes.status}.`;
-          }
-        } catch (pingErr) {
-          classifiedError = "Backend Offline: The backend API server is unreachable. Please verify that the backend is running and online.";
-        }
-      } else {
-        classifiedError = err.message || classifiedError;
-      }
-      setError(classifiedError);
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleTimeUpdate = () => {
@@ -541,7 +426,7 @@ export default function VideoDemo({
         <div className="videodemo-header-meta">
           <Cpu className="videodemo-header-icon text-glow-cyan" />
           <div>
-            <h1>COCO-SSD AI VIDEO ANALYTICS DEMO</h1>
+            <h1>AI VIDEO ANALYTICS DEMO</h1>
             <p>Select or upload a traffic feed video file to trigger browser-side real-time vehicle detection and telemetry.</p>
           </div>
         </div>
@@ -856,7 +741,7 @@ export default function VideoDemo({
                     />
                     
                     {/* Real-time bounding boxes layer overlaid on the video when playing */}
-                    {activeFrameStats && activeFrameStats.detections && activeFrameStats.detections.length > 0 && (
+                    {isPlaying && activeFrameStats && activeFrameStats.detections && activeFrameStats.detections.length > 0 && (
                       <div className="bounding-boxes-overlay-container" style={{
                         position: "absolute",
                         top: "0px",
