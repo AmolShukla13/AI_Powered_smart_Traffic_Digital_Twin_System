@@ -12,6 +12,7 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const mongoUri = process.env.MONGODB_URI || "";
 let client = null;
 export let db = null;
+export let isMockDatabase = true;
 
 if (mongoUri) {
   try {
@@ -49,12 +50,14 @@ export async function seedDatabase() {
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out")), 2000));
       await Promise.race([pingPromise, timeoutPromise]);
       console.log("Successfully connected to MongoDB Atlas!");
+      isMockDatabase = false;
     } else {
       throw new Error("MongoDB client is not initialized.");
     }
   } catch (err) {
     console.error(`MongoDB connection failed: ${err.message}. Falling back to memory DB simulation.`);
     db = createMockDb();
+    isMockDatabase = true;
   }
 
   try {

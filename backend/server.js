@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { seedDatabase } from "./db.js";
+import { seedDatabase, isMockDatabase } from "./db.js";
 import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
 import trafficRouter from "./routes/traffic.js";
@@ -28,6 +28,7 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.json({
     status: "online",
+    database: isMockDatabase ? "In-Memory Simulation (Mock DB - Data WILL BE LOST on restarts/deployments)" : "MongoDB Atlas (Cloud DB - Data is saved permanently)",
     message: "Welcome to the AI-powered Smart Traffic Digital Twin API Service!",
     version: "1.0.0"
   });
